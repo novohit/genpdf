@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教师简历</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .resume-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .resume-header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 2px solid #333;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .info-item {
+            margin-bottom: 8px;
+        }
+        .info-label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .experience-item {
+            margin-bottom: 15px;
+        }
+        .experience-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .experience-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .skills-chart {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+        }
+        .radar-tooltip {
+            position: absolute;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="resume-header">
+        <h1>教师简历</h1>
+    </div>
+
+    <div class="section">
+        <div class="section-title">基本信息</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">姓名：</span>
+                <span>{{name}}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">性别：</span>
+                <span>{{gender}}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">年龄：</span>
+                <span>{{age}}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">联系电话：</span>
+                <span>{{phone}}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">邮箱：</span>
+                <span>{{email}}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">教育背景</div>
+        {{#each education}}
+        <div class="experience-item">
+            <div class="experience-title">{{school}}</div>
+            <div>专业：{{major}}</div>
+            <div>学历：{{degree}}</div>
+            <div class="experience-date">{{startYear}} - {{endYear}}</div>
+        </div>
+        {{/each}}
+    </div>
+
+    <div class="section">
+        <div class="section-title">教学经验</div>
+        {{#each experience}}
+        <div class="experience-item">
+            <div class="experience-title">{{institution}}</div>
+            <div>职位：{{position}}</div>
+            <div>教授课程：{{courses}}</div>
+            <div class="experience-date">{{startDate}} - {{endDate}}</div>
+            <div>{{description}}</div>
+        </div>
+        {{/each}}
+    </div>
+
+    <div class="section">
+        <div class="section-title">技能评估</div>
+        <div id="skills-radar-chart" class="skills-chart"></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">技能特长</div>
+        <div>
+            {{#each skills}}
+            <div class="info-item">• {{this}}</div>
+            {{/each}}
+        </div>
+    </div>
+
+    {{#if achievements}}
+    <div class="section">
+        <div class="section-title">成就与荣誉</div>
+        {{#each achievements}}
+        <div class="info-item">• {{this}}</div>
+        {{/each}}
+    </div>
+    {{/if}}
+
+    <script>
+        // 雷达图数据处理和渲染
+        function createRadarChart() {
+            const skillsData = {{{skillLevels}}};
+            
+            const width = document.getElementById('skills-radar-chart').offsetWidth;
+            const height = 400;
+            const margin = 60;
+            const radius = Math.min(width, height) / 2 - margin;
+
+            const svg = d3.select('#skills-radar-chart')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height)
+                .append('g')
+                .attr('transform', `translate(${width/2},${height/2})`);
+
+            // 创建比例尺
+            const angleScale = d3.scalePoint()
+                .domain(skillsData.map(d => d.skill))
+                .range([0, 2 * Math.PI]);
+
+            const radiusScale = d3.scaleLinear()
+                .domain([0, 100])
+                .range([0, radius]);
+
+            // 创建雷达图轴线
+            const axes = svg.selectAll('.axis')
+                .data(skillsData)
+                .enter()
+                .append('line')
+                .attr('x1', 0)
+                .attr('y1', 0)
+                .attr('x2', (d, i) => radius * Math.cos(angleScale(d.skill) - Math.PI/2))
+                .attr('y2', (d, i) => radius * Math.sin(angleScale(d.skill) - Math.PI/2))
+                .attr('stroke', '#999')
+                .attr('stroke-width', 1);
+
+            // 创建同心圆
+            const circles = svg.selectAll('.circle')
+                .data([20, 40, 60, 80, 100])
+                .enter()
+                .append('circle')
+                .attr('cx', 0)
+                .attr('cy', 0)
+                .attr('r', d => radiusScale(d))
+                .attr('fill', 'none')
+                .attr('stroke', '#ccc')
+                .attr('stroke-width', 1);
+
+            // 创建数据多边形
+            const line = d3.lineRadial()
+                .angle(d => angleScale(d.skill) - Math.PI/2)
+                .radius(d => radiusScale(d.level))
+                .curve(d3.curveLinearClosed);
+
+            svg.append('path')
+                .datum(skillsData)
+                .attr('d', line)
+                .attr('fill', 'rgba(70, 130, 180, 0.5)')
+                .attr('stroke', 'steelblue')
+                .attr('stroke-width', 2);
+
+            // 添加技能标签
+            svg.selectAll('.skill-label')
+                .data(skillsData)
+                .enter()
+                .append('text')
+                .attr('x', d => (radius + 20) * Math.cos(angleScale(d.skill) - Math.PI/2))
+                .attr('y', d => (radius + 20) * Math.sin(angleScale(d.skill) - Math.PI/2))
+                .attr('text-anchor', d => {
+                    const angle = angleScale(d.skill);
+                    if (Math.abs(angle - Math.PI) < 0.1) return 'middle';
+                    return angle > Math.PI ? 'end' : 'start';
+                })
+                .attr('dy', '0.35em')
+                .text(d => `${d.skill} (${d.level}%)`);
+
+            // 添加数值点
+            svg.selectAll('.point')
+                .data(skillsData)
+                .enter()
+                .append('circle')
+                .attr('cx', d => radiusScale(d.level) * Math.cos(angleScale(d.skill) - Math.PI/2))
+                .attr('cy', d => radiusScale(d.level) * Math.sin(angleScale(d.skill) - Math.PI/2))
+                .attr('r', 4)
+                .attr('fill', 'steelblue');
+        }
+
+        // 当文档加载完成后创建图表
+        document.addEventListener('DOMContentLoaded', createRadarChart);
+    </script>
+</body>
+</html> 
