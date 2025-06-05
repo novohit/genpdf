@@ -6,6 +6,43 @@ const fs = require('fs').promises;
 const path = require('path');
 const PDFDocument = require('pdfkit');
 
+// 注册 Handlebars 辅助函数
+handlebars.registerHelper('slice', function(arr, start, end) {
+    if (!Array.isArray(arr)) return [];
+    return arr.slice(start, end);
+});
+
+handlebars.registerHelper('gt', function(a, b) {
+    return a > b;
+});
+
+handlebars.registerHelper('subtract', function(a, b) {
+    return a - b;
+});
+
+// 排序辅助函数
+handlebars.registerHelper('sort', function(array, field, direction) {
+    if (!Array.isArray(array)) return [];
+    const sorted = [...array].sort((a, b) => {
+        if (direction === 'desc') {
+            return b[field] - a[field];
+        }
+        return a[field] - b[field];
+    });
+    return sorted;
+});
+
+// 字符串分割辅助函数
+handlebars.registerHelper('split', function(str, separator) {
+    if (!str) return [];
+    return str.split(separator).map(item => item.trim());
+});
+
+// 默认值辅助函数
+handlebars.registerHelper('default', function(value, defaultValue) {
+    return value != null ? value : defaultValue;
+});
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -100,9 +137,9 @@ async function captureD3Chart(page, chartData, chartOptions) {
 // 新增：绘制扇形图的函数
 async function capturePieChart(page) {
     // 注入D3库
-    // await page.addScriptTag({
-    //     url: 'https://d3js.org/d3.v7.min.js'
-    // });
+    await page.addScriptTag({
+        url: 'https://d3js.org/d3.v7.min.js'
+    });
 
     // 创建一个容器来放置图表
     await page.evaluate(() => {
@@ -198,15 +235,21 @@ async function capturePieChart(page) {
 
 app.post('/generate-pdf', async (req, res) => {
     try {
-        const { teacherData, chartData, chartOptions, includePieChart = false } = req.body;
+        const { teacherData, chartData, chartOptions, includePieChart = false, papers = [] } = req.body;
         
         if (!teacherData) {
             return res.status(400).json({ error: 'Teacher data is required' });
         }
 
+        // 将论文数据添加到模板数据中
+        const templateData = {
+            ...teacherData,
+            papers
+        };
+
         // 获取并编译模板
         const template = await getTemplate();
-        const html = template(teacherData);
+        const html = template(templateData);
 
         // 启动 Puppeteer
         const browser = await puppeteer.launch({

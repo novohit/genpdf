@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>教师简历</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: "Microsoft YaHei", Arial, sans-serif;
@@ -42,6 +43,35 @@
             font-weight: bold;
             margin-right: 10px;
         }
+        .description {
+            margin: 15px 0;
+            line-height: 1.8;
+            text-align: justify;
+        }
+        .domain-list {
+            margin: 10px 0;
+        }
+        .school-info {
+            margin-bottom: 15px;
+        }
+        .school-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .school-detail {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .domain-tag {
+            display: inline-block;
+            background-color: #E8F3FF;
+            color: #2f508f;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            margin: 4px;
+        }
         .experience-item {
             margin-bottom: 15px;
         }
@@ -67,11 +97,80 @@
             font-size: 12px;
             pointer-events: none;
         }
+        .title-tag {
+            display: inline-block;
+            background-color: #ff9c55;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            margin-right: 8px;
+            margin-top: 8px;
+        }
+        .paper-list {
+            margin-top: 15px;
+        }
+        .paper-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e6e6e6;
+        }
+        .paper-item:last-child {
+            border-bottom: none;
+        }
+        .paper-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: #333;
+        }
+        .paper-source {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        .paper-authors {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        .paper-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        .paper-abstract {
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #333;
+            margin-top: 10px;
+        }
+        .citation-tag {
+            display: inline-block;
+            background-color: #2f508f;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-left: 8px;
+        }
+        .paper-section-title {
+            display: flex;
+            align-items: center;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e6e6e6;
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #2f508f;
+        }
     </style>
 </head>
 <body>
     <div class="resume-header">
-        <h1>教师简历</h1>
+        <h1>{{derivedTeacherName}}</h1>
+        {{#if normalizedTitle}}
+        <div class="title-tag">{{normalizedTitle}}</div>
+        {{/if}}
     </div>
 
     <div class="section">
@@ -79,26 +178,104 @@
         <div class="info-grid">
             <div class="info-item">
                 <span class="info-label">姓名：</span>
-                <span>{{name}}</span>
+                <span>{{derivedTeacherName}}</span>
             </div>
             <div class="info-item">
-                <span class="info-label">性别：</span>
-                <span>{{gender}}</span>
+                <span class="info-label">所属院校：</span>
+                <span>{{schoolName}}</span>
             </div>
-            <div class="info-item">
-                <span class="info-label">年龄：</span>
-                <span>{{age}}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">联系电话：</span>
-                <span>{{phone}}</span>
-            </div>
+            {{#if email}}
             <div class="info-item">
                 <span class="info-label">邮箱：</span>
                 <span>{{email}}</span>
             </div>
+            {{/if}}
+            <div class="info-item">
+                <span class="info-label">年龄范围：</span>
+                <span>{{ageRange}}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">海外经历：</span>
+                <span>{{overseasExperience}}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">企业经历：</span>
+                <span>{{corporateExperience}}</span>
+            </div>
         </div>
     </div>
+
+    <div class="section">
+        <div class="section-title">专业领域</div>
+        
+        {{#if major2Domain.length}}
+        <div class="info-item">
+            <span class="info-label">二级学科：</span>
+            <div class="flex flex-wrap gap-2 ml-2">
+                {{#each (slice major2Domain 0 3)}}
+                <div class="domain-tag">{{this}}</div>
+                {{/each}}
+                {{#if (gt major2Domain.length 3)}}
+                <div class="domain-tag">+{{subtract major2Domain.length 3}}</div>
+                {{/if}}
+            </div>
+        </div>
+        {{/if}}
+        
+        {{#if major3Domain.length}}
+        <div class="info-item">
+            <span class="info-label">三级学科：</span>
+            <div class="flex flex-wrap gap-2 ml-2">
+                {{#each (slice major3Domain 0 3)}}
+                <div class="domain-tag">{{this}}</div>
+                {{/each}}
+                {{#if (gt major3Domain.length 3)}}
+                <div class="domain-tag">+{{subtract major3Domain.length 3}}</div>
+                {{/if}}
+            </div>
+        </div>
+        {{/if}}
+    </div>
+
+    <div class="section">
+        <div class="section-title">个人简介</div>
+        <div class="description">{{omitDescription}}</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">所属院校信息</div>
+        <div class="school-info">
+            <div class="school-name">{{schoolNameEn}}</div>
+            <div class="school-detail">地区：{{region}}</div>
+            <div class="school-detail">世界排名：{{ranking}}</div>
+            <div class="school-detail">论文数量：{{paperNum}}</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">研究领域</div>
+        {{#if researchArea.length}}
+        <div class="domain-list">
+            {{#each researchArea}}
+            <div class="domain-item">• {{this}}</div>
+            {{/each}}
+        </div>
+        {{/if}}
+    </div>
+
+    {{#if paperl3Domains}}
+    <div class="section">
+        <div class="section-title">研究方向</div>
+        <div class="flex flex-wrap gap-2">
+            {{#each (slice paperl3Domains 0 3)}}
+            <div class="domain-tag">{{this}}</div>
+            {{/each}}
+            {{#if (gt paperl3Domains.length 3)}}
+            <div class="domain-tag">+{{subtract paperl3Domains.length 3}}</div>
+            {{/if}}
+        </div>
+    </div>
+    {{/if}}
 
     <div class="section">
         <div class="section-title">教育背景</div>
@@ -145,6 +322,25 @@
         {{#each achievements}}
         <div class="info-item">• {{this}}</div>
         {{/each}}
+    </div>
+    {{/if}}
+
+    {{#if papers}}
+    <div class="section">
+        <div class="section-title">近年发表的论文</div>
+        <div class="paper-list">
+            {{#each (slice papers 0 5)}}
+            <div class="paper-item">
+                <div class="paper-title">{{title}}</div>
+                <div class="paper-source">{{paperSource}}</div>
+                <div class="paper-authors">{{authorList}}</div>
+                <div class="paper-meta">
+                    <div>被引用次数：{{default cited 0}}</div>
+                    <div>{{publicationDate}}</div>
+                </div>
+            </div>
+            {{/each}}
+        </div>
     </div>
     {{/if}}
 
