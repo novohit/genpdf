@@ -17,7 +17,7 @@ RUN rm -f /etc/apt/sources.list.d/*.list \
 # 安装 Puppeteer 所需的最小系统依赖
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
-        fonts-wqy-zenhei \
+        # fonts-wqy-zenhei \
         libx11-xcb1 \
         libxcomposite1 \
         libxcursor1 \
