@@ -2,6 +2,9 @@ const { teacherSkillsData, publicationData } = require('./mock/data');
 
 // 柱状图绘制函数
 async function captureD3Chart(page, dataType = 'skills', chartOptions = {}) {
+    // 添加控制台监听
+    page.on('console', msg => console.log('Browser log:', msg.text()));
+    
     // 注入D3库
     // 记录注入时间
     const startTime = Date.now();
@@ -23,9 +26,10 @@ async function captureD3Chart(page, dataType = 'skills', chartOptions = {}) {
     // 选择数据
     const chartData = dataType === 'skills' ? teacherSkillsData.bar : publicationData.bar;
     const chartTitle = dataType === 'skills' ? '教师综合评估' : '论文发表统计';
-
+    console.log('Node.js environment - chartData:', chartData);
     // 在页面中渲染D3图表并返回SVG字符串
     const svgString = await page.evaluate((data, options, title) => {
+        console.log('SSSSSSSS', JSON.stringify(data));
         const width = options.width || 600;
         const height = options.height || 400;
         const margin = options.margin || { top: 40, right: 20, bottom: 30, left: 40 };

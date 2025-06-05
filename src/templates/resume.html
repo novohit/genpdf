@@ -319,28 +319,6 @@
         {{/each}}
     </div>
 
-    <div class="section">
-        <div class="section-title">教学经验</div>
-        {{#each experience}}
-        <div class="experience-item">
-            <div class="experience-title">{{institution}}</div>
-            <div>职位：{{position}}</div>
-            <div>教授课程：{{courses}}</div>
-            <div class="experience-date">{{startDate}} - {{endDate}}</div>
-            <div>{{description}}</div>
-        </div>
-        {{/each}}
-    </div>
-
-    <div class="section">
-        <div class="section-title">技能特长</div>
-        <div>
-            {{#each skills}}
-            <div class="info-item">• {{this}}</div>
-            {{/each}}
-        </div>
-    </div>
-
     {{#if achievements}}
     <div class="section">
         <div class="section-title">成就与荣誉</div>
@@ -377,6 +355,7 @@
     {{#if collaborations}}
     <div class="section">
         <div class="section-title">学术合作</div>
+        <div id="relationship-graph-placeholder"></div>
         <div class="collaboration-list">
             {{#each (slice collaborations 0 5)}}
             <div class="collaboration-item" style="padding: 10px 0; border-bottom: 1px solid #eee;">

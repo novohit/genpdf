@@ -5,7 +5,7 @@ const handlebars = require('handlebars');
 const fs = require('fs').promises;
 const path = require('path');
 const PDFDocument = require('pdfkit');
-const { captureD3Chart, capturePieChart } = require('./visualization');
+const { captureD3Chart, capturePieChart, captureRelationshipGraph } = require('./visualization');
 
 // 注册 Handlebars 辅助函数
 handlebars.registerHelper('slice', function(arr, start, end) {
@@ -66,7 +66,7 @@ async function getTemplate() {
 
 app.post('/generate-pdf', async (req, res) => {
     try {
-        const { teacherData, chartOptions = {}, papers = [], collaborations = [] } = req.body;
+        const { teacherData, chartOptions = {}, papers = [], collaborations = [], relationshipGraph = [] } = req.body;
         
         if (!teacherData) {
             return res.status(400).json({ error: 'Teacher data is required' });
@@ -95,12 +95,18 @@ app.post('/generate-pdf', async (req, res) => {
         let achievementPieChart = '';
         let skillsBarChart = '';
         let publicationBarChart = '';
+        let relationshipGraphSvg = '';
 
         // 生成教师能力评估饼图
         skillsPieChart = await capturePieChart(page, 'skills');
     
         // 生成论文发表统计柱状图
         publicationBarChart = await captureD3Chart(page, 'publication', chartOptions);
+
+        // 生成合作关系图
+        if (relationshipGraph.length > 0) {
+            relationshipGraphSvg = await captureRelationshipGraph(page, relationshipGraph);
+        }
 
         // 将所有图表插入到HTML中
         let finalHtml = html;
@@ -119,6 +125,14 @@ app.post('/generate-pdf', async (req, res) => {
             </div>
         `);
 
+        // 插入合作关系图
+        if (relationshipGraph.length > 0) {
+            finalHtml = finalHtml.replace('<div id="relationship-graph-placeholder"></div>', `
+                <div style="page-break-inside: avoid; margin: 20px 0;">
+                    ${relationshipGraphSvg}
+                </div>
+            `);
+        }
         await page.setContent(finalHtml, {
             waitUntil: 'networkidle0'
         });

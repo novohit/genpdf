@@ -23,7 +23,7 @@ const publicationData = {
         { label: "2020", value: 5 },
         { label: "2021", value: 4 },
         { label: "2022", value: 7 },
-        { label: "2023", value: 6 }
+        { label: "2023", value: 16 }
     ]
 };
 
