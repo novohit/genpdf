@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>教师简历</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: "Microsoft YaHei", Arial, sans-serif;
@@ -42,6 +42,35 @@
             font-weight: bold;
             margin-right: 10px;
         }
+        .description {
+            margin: 15px 0;
+            line-height: 1.8;
+            text-align: justify;
+        }
+        .domain-list {
+            margin: 10px 0;
+        }
+        .school-info {
+            margin-bottom: 15px;
+        }
+        .school-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .school-detail {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .domain-tag {
+            display: inline-block;
+            background-color: #E8F3FF;
+            color: #2f508f;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            margin: 4px;
+        }
         .experience-item {
             margin-bottom: 15px;
         }
@@ -67,11 +96,80 @@
             font-size: 12px;
             pointer-events: none;
         }
+        .title-tag {
+            display: inline-block;
+            background-color: #ff9c55;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            margin-right: 8px;
+            margin-top: 8px;
+        }
+        .paper-list {
+            margin-top: 15px;
+        }
+        .paper-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e6e6e6;
+        }
+        .paper-item:last-child {
+            border-bottom: none;
+        }
+        .paper-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: #333;
+        }
+        .paper-source {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        .paper-authors {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        .paper-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        .paper-abstract {
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #333;
+            margin-top: 10px;
+        }
+        .citation-tag {
+            display: inline-block;
+            background-color: #2f508f;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-left: 8px;
+        }
+        .paper-section-title {
+            display: flex;
+            align-items: center;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e6e6e6;
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #2f508f;
+        }
     </style>
 </head>
 <body>
     <div class="resume-header">
-        <h1>教师简历</h1>
+        <h1>{{derivedTeacherName}}</h1>
+        {{#if normalizedTitle}}
+        <div class="title-tag">{{normalizedTitle}}</div>
+        {{/if}}
     </div>
 
     <div class="section">
@@ -79,25 +177,134 @@
         <div class="info-grid">
             <div class="info-item">
                 <span class="info-label">姓名：</span>
-                <span>{{name}}</span>
+                <span>{{derivedTeacherName}}</span>
             </div>
             <div class="info-item">
-                <span class="info-label">性别：</span>
-                <span>{{gender}}</span>
+                <span class="info-label">所属院校：</span>
+                <span>{{schoolName}}</span>
             </div>
-            <div class="info-item">
-                <span class="info-label">年龄：</span>
-                <span>{{age}}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">联系电话：</span>
-                <span>{{phone}}</span>
-            </div>
+            {{#if email}}
             <div class="info-item">
                 <span class="info-label">邮箱：</span>
                 <span>{{email}}</span>
             </div>
+            {{/if}}
+            {{#if region}}
+            <div class="info-item">
+                <span class="info-label">地区：</span>
+                <span>{{region}}</span>
+            </div>
+            {{/if}}
+            {{#if ageRange}}
+            {{#unless (eq ageRange "不清楚")}}
+            <div class="info-item">
+                <span class="info-label">年龄范围：</span>
+                <span>{{ageRange}}</span>
+            </div>
+            {{/unless}}
+            {{/if}}
+            {{#if overseasExperience}}
+            {{#unless (eq overseasExperience "不清楚")}}
+            <div class="info-item">
+                <span class="info-label">海外经历：</span>
+                <span>{{overseasExperience}}</span>
+            </div>
+            {{/unless}}
+            {{/if}}
+            {{#if corporateExperience}}
+            {{#unless (eq corporateExperience "不清楚")}}
+            <div class="info-item">
+                <span class="info-label">企业经历：</span>
+                <span>{{corporateExperience}}</span>
+            </div>
+            {{/unless}}
+            {{/if}}
         </div>
+    </div>
+
+    {{#if famousTitles}}
+    <div class="section" style="margin-top: 25px; margin-bottom: 25px;">
+        <div class="section-title" style="color: #4a5568; margin-bottom: 15px;">
+            <span style="border-bottom: 3px solid #7c8dc9; padding-bottom: 5px;">荣誉称号</span>
+        </div>
+        <div class="famous-titles" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px;">
+            {{#each famousTitles}}
+            <div style="
+                background: linear-gradient(135deg, #EDF0FC 0%, #d5dbf7 100%);
+                border-radius: 8px;
+                padding: 10px 20px;
+                color: #2d3748;
+                font-size: 1em;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                transition: transform 0.2s ease;
+            ">
+                <span style="color: #FFCC49;">★</span>
+                {{this}}
+            </div>
+            {{/each}}
+        </div>
+        <div style="margin-top: 15px; padding: 12px; background-color: #f7f8fd; border-left: 4px solid #7c8dc9; color: #4a5568; font-size: 0.9em;">
+            这些成就代表了在学术领域的最高认可，展现了卓越的研究能力和影响力。
+        </div>
+    </div>
+    {{/if}}
+
+    {{#if major2Domain.length}}
+    <div class="section">
+        <div class="section-title">学科领域</div>
+        <div class="flex flex-wrap gap-2">
+            {{#each (slice major2Domain 0 3)}}
+            <div class="domain-tag">{{this}}</div>
+            {{/each}}
+            {{#if (gt major2Domain.length 3)}}
+            <div class="domain-tag">+{{subtract major2Domain.length 3}}</div>
+            {{/if}}
+        </div>
+    </div>
+    {{/if}}
+    
+    {{#if major3Domain.length}}
+    <div class="section">
+        <div class="section-title">研究领域</div>
+        <div class="flex flex-wrap gap-2">
+            {{#each (slice major3Domain 0 3)}}
+            <div class="domain-tag">{{this}}</div>
+            {{/each}}
+            {{#if (gt major3Domain.length 3)}}
+            <div class="domain-tag">+{{subtract major3Domain.length 3}}</div>
+            {{/if}}
+        </div>
+    </div>
+    {{/if}}
+
+    <div class="section">
+        <div class="section-title">个人简介</div>
+        <div class="description">{{omitDescription}}</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">所属院校信息</div>
+        <div class="school-info">
+            <div class="school-name">{{schoolNameEn}}</div>
+            <div class="school-detail">地区：{{region}}</div>
+            <div class="school-detail">世界排名：{{ranking}}</div>
+            <div class="school-detail">论文数量：{{paperNum}}</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">测试标题</div>
+        {{#if researchArea.length}}
+        <div class="domain-list">
+            {{#each researchArea}}
+            <div class="domain-item">• {{this}}</div>
+            {{/each}}
+        </div>
+        {{/if}}
     </div>
 
     <div class="section">
@@ -112,33 +319,6 @@
         {{/each}}
     </div>
 
-    <div class="section">
-        <div class="section-title">教学经验</div>
-        {{#each experience}}
-        <div class="experience-item">
-            <div class="experience-title">{{institution}}</div>
-            <div>职位：{{position}}</div>
-            <div>教授课程：{{courses}}</div>
-            <div class="experience-date">{{startDate}} - {{endDate}}</div>
-            <div>{{description}}</div>
-        </div>
-        {{/each}}
-    </div>
-
-    <div class="section">
-        <div class="section-title">技能评估</div>
-        <div id="skills-radar-chart" class="skills-chart"></div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">技能特长</div>
-        <div>
-            {{#each skills}}
-            <div class="info-item">• {{this}}</div>
-            {{/each}}
-        </div>
-    </div>
-
     {{#if achievements}}
     <div class="section">
         <div class="section-title">成就与荣誉</div>
@@ -148,97 +328,53 @@
     </div>
     {{/if}}
 
-    <script>
-        // 雷达图数据处理和渲染
-        function createRadarChart() {
-            const skillsData = {{{skillLevels}}};
-            
-            const width = document.getElementById('skills-radar-chart').offsetWidth;
-            const height = 400;
-            const margin = 60;
-            const radius = Math.min(width, height) / 2 - margin;
+    <div id="skills-pie-chart-placeholder"></div>
+    <div id="achievement-pie-chart-placeholder"></div>
+    <div id="skills-bar-chart-placeholder"></div>
+    <div id="publication-bar-chart-placeholder"></div>
 
-            const svg = d3.select('#skills-radar-chart')
-                .append('svg')
-                .attr('width', width)
-                .attr('height', height)
-                .append('g')
-                .attr('transform', `translate(${width/2},${height/2})`);
+    {{#if papers}}
+    <div class="section">
+        <div class="section-title">近年发表的论文</div>
+        <div id="stream-graph-placeholder"></div>
+        <div class="paper-list">
+            {{#each (slice papers 0 5)}}
+            <div class="paper-item">
+                <div class="paper-title">{{title}}</div>
+                <div class="paper-source">{{paperSource}}</div>
+                <div class="paper-authors">{{authorList}}</div>
+                <div class="paper-meta">
+                    <div>被引用次数：{{default timesCited 0}}</div>
+                    <div>{{publicationDate}}</div>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
 
-            // 创建比例尺
-            const angleScale = d3.scalePoint()
-                .domain(skillsData.map(d => d.skill))
-                .range([0, 2 * Math.PI]);
+    {{#if collaborations}}
+    <div class="section">
+        <div class="section-title">学术合作</div>
+        <div id="relationship-graph-placeholder"></div>
+        <div class="collaboration-list">
+            {{#each (slice collaborations 0 5)}}
+            <div class="collaboration-item" style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <div style="font-weight: 500;">{{partnerName}}</div>
+                    <div style="color: #666;">合作次数：{{numCooperation}}</div>
+                </div>
+                <div style="color: #666; font-size: 0.9em;">{{partnerSchool}}</div>
+            </div>
+            {{/each}}
+            {{#if (gt collaborations.length 5)}}
+            <!-- <div style="text-align: right; padding: 10px 0; color: #666; font-size: 0.9em;">
+                还有 {{subtract collaborations.length 5}} 个合作者
+            </div> -->
+            {{/if}}
+        </div>
+    </div>
+    {{/if}}
 
-            const radiusScale = d3.scaleLinear()
-                .domain([0, 100])
-                .range([0, radius]);
-
-            // 创建雷达图轴线
-            const axes = svg.selectAll('.axis')
-                .data(skillsData)
-                .enter()
-                .append('line')
-                .attr('x1', 0)
-                .attr('y1', 0)
-                .attr('x2', (d, i) => radius * Math.cos(angleScale(d.skill) - Math.PI/2))
-                .attr('y2', (d, i) => radius * Math.sin(angleScale(d.skill) - Math.PI/2))
-                .attr('stroke', '#999')
-                .attr('stroke-width', 1);
-
-            // 创建同心圆
-            const circles = svg.selectAll('.circle')
-                .data([20, 40, 60, 80, 100])
-                .enter()
-                .append('circle')
-                .attr('cx', 0)
-                .attr('cy', 0)
-                .attr('r', d => radiusScale(d))
-                .attr('fill', 'none')
-                .attr('stroke', '#ccc')
-                .attr('stroke-width', 1);
-
-            // 创建数据多边形
-            const line = d3.lineRadial()
-                .angle(d => angleScale(d.skill) - Math.PI/2)
-                .radius(d => radiusScale(d.level))
-                .curve(d3.curveLinearClosed);
-
-            svg.append('path')
-                .datum(skillsData)
-                .attr('d', line)
-                .attr('fill', 'rgba(70, 130, 180, 0.5)')
-                .attr('stroke', 'steelblue')
-                .attr('stroke-width', 2);
-
-            // 添加技能标签
-            svg.selectAll('.skill-label')
-                .data(skillsData)
-                .enter()
-                .append('text')
-                .attr('x', d => (radius + 20) * Math.cos(angleScale(d.skill) - Math.PI/2))
-                .attr('y', d => (radius + 20) * Math.sin(angleScale(d.skill) - Math.PI/2))
-                .attr('text-anchor', d => {
-                    const angle = angleScale(d.skill);
-                    if (Math.abs(angle - Math.PI) < 0.1) return 'middle';
-                    return angle > Math.PI ? 'end' : 'start';
-                })
-                .attr('dy', '0.35em')
-                .text(d => `${d.skill} (${d.level}%)`);
-
-            // 添加数值点
-            svg.selectAll('.point')
-                .data(skillsData)
-                .enter()
-                .append('circle')
-                .attr('cx', d => radiusScale(d.level) * Math.cos(angleScale(d.skill) - Math.PI/2))
-                .attr('cy', d => radiusScale(d.level) * Math.sin(angleScale(d.skill) - Math.PI/2))
-                .attr('r', 4)
-                .attr('fill', 'steelblue');
-        }
-
-        // 当文档加载完成后创建图表
-        document.addEventListener('DOMContentLoaded', createRadarChart);
-    </script>
 </body>
 </html> 

@@ -1,0 +1,57 @@
+FROM node:18-slim
+
+WORKDIR /usr/src/app
+
+RUN rm -f /etc/apt/sources.list.d/*.list \
+    && echo "deb http://mirrors.ustc.edu.cn/debian/ bookworm main non-free contrib" > /etc/apt/sources.list \
+    && echo "deb http://mirrors.ustc.edu.cn/debian-security/ bookworm-security main" >> /etc/apt/sources.list \
+    && echo "deb http://mirrors.ustc.edu.cn/debian/ bookworm-updates main non-free contrib" >> /etc/apt/sources.list \
+    && echo "deb http://mirrors.ustc.edu.cn/debian/ bookworm-backports main non-free contrib" >> /etc/apt/sources.list \
+    && echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries \
+    && echo 'Acquire::Check-Valid-Until "false";' >> /etc/apt/apt.conf.d/80-retries \
+    && echo 'APT::Get::Assume-Yes "true";' >> /etc/apt/apt.conf.d/80-retries
+
+# 安装 Puppeteer 所需的最小系统依赖
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends \
+        fonts-wqy-zenhei \
+        libx11-xcb1 \
+        libxcomposite1 \
+        libxcursor1 \
+        libxdamage1 \
+        libxi6 \
+        libxtst6 \
+        libnss3 \
+        libcups2 \
+        libxss1 \
+        libxrandr2 \
+        libasound2 \
+        libatk1.0-0 \
+        libatk-bridge2.0-0 \
+        libpangocairo-1.0-0 \
+        libgtk-3-0 \
+        libgbm1 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# 创建字体目录并复制字体文件
+RUN mkdir -p /usr/share/fonts/truetype/custom
+COPY assets/fonts/* /usr/share/fonts/truetype/custom/
+RUN chmod 644 /usr/share/fonts/truetype/custom/* && \
+    fc-cache -fv
+
+COPY package*.json ./
+# ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+# ENV PUPPETEER_SKIP_DOWNLOAD=true
+RUN npm config set registry https://registry.npmjs.org/
+RUN npm install
+
+COPY . .
+
+RUN mkdir -p src/templates
+
+ENV PORT=3000
+
+EXPOSE 3000
+
+CMD ["npm", "start"] 

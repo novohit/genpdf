@@ -1,0 +1,29 @@
+.container .shape {
+    transition-duration: 0.3s;
+    transition-property: filter, opacity;
+    opacity: 1;
+    filter: saturate(100%);
+  }
+  
+  .container:hover .shape {
+    opacity: 0.4;
+    filter: saturate(50%);
+  }
+  
+  .container .shape:hover {
+    opacity: 1;
+    filter: saturate(100%);
+  }
+  
+  .legend {
+    cursor: pointer;
+  }
+  
+  .legend:hover circle {
+    transform: scale(1.2);
+  }
+  
+  .legend circle {
+    transition: transform 0.2s;
+  }
+  

@@ -1,0 +1,49 @@
+stages:
+  - build
+  - deploy
+
+build:
+  image:
+    name: 172.22.121.50/gcr/kaniko-project/executor:v1.21.0-debug
+    entrypoint: [""]
+  stage: build
+  tags:
+    - "k8s_runner_persionnel_matching"
+  only:
+    refs:
+      - master
+      - dev
+  cache:
+    paths:
+      - ./cache
+  script:
+    - echo "{\"auths\":{\"${KCI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${KCI_REGISTRY_USER}" "${KCI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/warmer
+      --skip-tls-verify-pull
+      --dockerfile "Dockerfile"
+      --skip-tls-verify-registry 172.22.121.50
+    - /kaniko/executor
+      --skip-tls-verify
+      --dockerfile "Dockerfile"
+      --context ./
+      --destination 172.22.121.50/personnel-matching/zwx/pdf-generator:$CI_PIPELINE_IID
+
+deploy:
+  image: 172.22.121.50/dockerio/bitnami/kubectl:1.23
+  stage: deploy
+  only:
+    refs:
+      - master
+      - dev
+      - v3
+  tags:
+    - "k8s_runner_persionnel_matching"
+  script:
+    - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+      sed -i "s/\$CI_PIPELINE_IID/${CI_PIPELINE_IID}/g" ./deployment.yaml;
+      kubectl apply -f ./deployment.yaml;
+      elif [ "$CI_COMMIT_REF_NAME" == "dev" ]; then
+      sed -i "s/\$CI_PIPELINE_IID/${CI_PIPELINE_IID}/g" ./deployment-dev.yaml;
+      kubectl apply -f ./deployment-dev.yaml;
+      fi
+
