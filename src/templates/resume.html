@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>教师简历</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -190,52 +189,97 @@
                 <span>{{email}}</span>
             </div>
             {{/if}}
+            {{#if region}}
+            <div class="info-item">
+                <span class="info-label">地区：</span>
+                <span>{{region}}</span>
+            </div>
+            {{/if}}
+            {{#if ageRange}}
+            {{#unless (eq ageRange "不清楚")}}
             <div class="info-item">
                 <span class="info-label">年龄范围：</span>
                 <span>{{ageRange}}</span>
             </div>
+            {{/unless}}
+            {{/if}}
+            {{#if overseasExperience}}
+            {{#unless (eq overseasExperience "不清楚")}}
             <div class="info-item">
                 <span class="info-label">海外经历：</span>
                 <span>{{overseasExperience}}</span>
             </div>
+            {{/unless}}
+            {{/if}}
+            {{#if corporateExperience}}
+            {{#unless (eq corporateExperience "不清楚")}}
             <div class="info-item">
                 <span class="info-label">企业经历：</span>
                 <span>{{corporateExperience}}</span>
             </div>
+            {{/unless}}
+            {{/if}}
         </div>
     </div>
 
-    <div class="section">
-        <div class="section-title">专业领域</div>
-        
-        {{#if major2Domain.length}}
-        <div class="info-item">
-            <span class="info-label">二级学科：</span>
-            <div class="flex flex-wrap gap-2 ml-2">
-                {{#each (slice major2Domain 0 3)}}
-                <div class="domain-tag">{{this}}</div>
-                {{/each}}
-                {{#if (gt major2Domain.length 3)}}
-                <div class="domain-tag">+{{subtract major2Domain.length 3}}</div>
-                {{/if}}
-            </div>
+    {{#if famousTitles}}
+    <div class="section" style="margin-top: 25px; margin-bottom: 25px;">
+        <div class="section-title" style="color: #4a5568; margin-bottom: 15px;">
+            <span style="border-bottom: 3px solid #7c8dc9; padding-bottom: 5px;">荣誉称号</span>
         </div>
-        {{/if}}
-        
-        {{#if major3Domain.length}}
-        <div class="info-item">
-            <span class="info-label">三级学科：</span>
-            <div class="flex flex-wrap gap-2 ml-2">
-                {{#each (slice major3Domain 0 3)}}
-                <div class="domain-tag">{{this}}</div>
-                {{/each}}
-                {{#if (gt major3Domain.length 3)}}
-                <div class="domain-tag">+{{subtract major3Domain.length 3}}</div>
-                {{/if}}
+        <div class="famous-titles" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px;">
+            {{#each famousTitles}}
+            <div style="
+                background: linear-gradient(135deg, #EDF0FC 0%, #d5dbf7 100%);
+                border-radius: 8px;
+                padding: 10px 20px;
+                color: #2d3748;
+                font-size: 1em;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                transition: transform 0.2s ease;
+            ">
+                <span style="color: #FFCC49;">★</span>
+                {{this}}
             </div>
+            {{/each}}
         </div>
-        {{/if}}
+        <div style="margin-top: 15px; padding: 12px; background-color: #f7f8fd; border-left: 4px solid #7c8dc9; color: #4a5568; font-size: 0.9em;">
+            这些成就代表了在学术领域的最高认可，展现了卓越的研究能力和影响力。
+        </div>
     </div>
+    {{/if}}
+
+    {{#if major2Domain.length}}
+    <div class="section">
+        <div class="section-title">学科领域</div>
+        <div class="flex flex-wrap gap-2">
+            {{#each (slice major2Domain 0 3)}}
+            <div class="domain-tag">{{this}}</div>
+            {{/each}}
+            {{#if (gt major2Domain.length 3)}}
+            <div class="domain-tag">+{{subtract major2Domain.length 3}}</div>
+            {{/if}}
+        </div>
+    </div>
+    {{/if}}
+    
+    {{#if major3Domain.length}}
+    <div class="section">
+        <div class="section-title">研究领域</div>
+        <div class="flex flex-wrap gap-2">
+            {{#each (slice major3Domain 0 3)}}
+            <div class="domain-tag">{{this}}</div>
+            {{/each}}
+            {{#if (gt major3Domain.length 3)}}
+            <div class="domain-tag">+{{subtract major3Domain.length 3}}</div>
+            {{/if}}
+        </div>
+    </div>
+    {{/if}}
 
     <div class="section">
         <div class="section-title">个人简介</div>
@@ -253,7 +297,7 @@
     </div>
 
     <div class="section">
-        <div class="section-title">研究领域</div>
+        <div class="section-title">测试标题</div>
         {{#if researchArea.length}}
         <div class="domain-list">
             {{#each researchArea}}
@@ -262,20 +306,6 @@
         </div>
         {{/if}}
     </div>
-
-    {{#if paperl3Domains}}
-    <div class="section">
-        <div class="section-title">研究方向</div>
-        <div class="flex flex-wrap gap-2">
-            {{#each (slice paperl3Domains 0 3)}}
-            <div class="domain-tag">{{this}}</div>
-            {{/each}}
-            {{#if (gt paperl3Domains.length 3)}}
-            <div class="domain-tag">+{{subtract paperl3Domains.length 3}}</div>
-            {{/if}}
-        </div>
-    </div>
-    {{/if}}
 
     <div class="section">
         <div class="section-title">教育背景</div>
@@ -303,11 +333,6 @@
     </div>
 
     <div class="section">
-        <div class="section-title">技能评估</div>
-        <div id="skills-radar-chart" class="skills-chart"></div>
-    </div>
-
-    <div class="section">
         <div class="section-title">技能特长</div>
         <div>
             {{#each skills}}
@@ -325,6 +350,11 @@
     </div>
     {{/if}}
 
+    <div id="skills-pie-chart-placeholder"></div>
+    <div id="achievement-pie-chart-placeholder"></div>
+    <div id="skills-bar-chart-placeholder"></div>
+    <div id="publication-bar-chart-placeholder"></div>
+
     {{#if papers}}
     <div class="section">
         <div class="section-title">近年发表的论文</div>
@@ -335,7 +365,7 @@
                 <div class="paper-source">{{paperSource}}</div>
                 <div class="paper-authors">{{authorList}}</div>
                 <div class="paper-meta">
-                    <div>被引用次数：{{default cited 0}}</div>
+                    <div>被引用次数：{{default timesCited 0}}</div>
                     <div>{{publicationDate}}</div>
                 </div>
             </div>
@@ -344,97 +374,27 @@
     </div>
     {{/if}}
 
-    <script>
-        // 雷达图数据处理和渲染
-        function createRadarChart() {
-            const skillsData = {{{skillLevels}}};
-            
-            const width = document.getElementById('skills-radar-chart').offsetWidth;
-            const height = 400;
-            const margin = 60;
-            const radius = Math.min(width, height) / 2 - margin;
+    {{#if collaborations}}
+    <div class="section">
+        <div class="section-title">学术合作</div>
+        <div class="collaboration-list">
+            {{#each (slice collaborations 0 5)}}
+            <div class="collaboration-item" style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <div style="font-weight: 500;">{{partnerName}}</div>
+                    <div style="color: #666;">合作次数：{{numCooperation}}</div>
+                </div>
+                <div style="color: #666; font-size: 0.9em;">{{partnerSchool}}</div>
+            </div>
+            {{/each}}
+            {{#if (gt collaborations.length 5)}}
+            <!-- <div style="text-align: right; padding: 10px 0; color: #666; font-size: 0.9em;">
+                还有 {{subtract collaborations.length 5}} 个合作者
+            </div> -->
+            {{/if}}
+        </div>
+    </div>
+    {{/if}}
 
-            const svg = d3.select('#skills-radar-chart')
-                .append('svg')
-                .attr('width', width)
-                .attr('height', height)
-                .append('g')
-                .attr('transform', `translate(${width/2},${height/2})`);
-
-            // 创建比例尺
-            const angleScale = d3.scalePoint()
-                .domain(skillsData.map(d => d.skill))
-                .range([0, 2 * Math.PI]);
-
-            const radiusScale = d3.scaleLinear()
-                .domain([0, 100])
-                .range([0, radius]);
-
-            // 创建雷达图轴线
-            const axes = svg.selectAll('.axis')
-                .data(skillsData)
-                .enter()
-                .append('line')
-                .attr('x1', 0)
-                .attr('y1', 0)
-                .attr('x2', (d, i) => radius * Math.cos(angleScale(d.skill) - Math.PI/2))
-                .attr('y2', (d, i) => radius * Math.sin(angleScale(d.skill) - Math.PI/2))
-                .attr('stroke', '#999')
-                .attr('stroke-width', 1);
-
-            // 创建同心圆
-            const circles = svg.selectAll('.circle')
-                .data([20, 40, 60, 80, 100])
-                .enter()
-                .append('circle')
-                .attr('cx', 0)
-                .attr('cy', 0)
-                .attr('r', d => radiusScale(d))
-                .attr('fill', 'none')
-                .attr('stroke', '#ccc')
-                .attr('stroke-width', 1);
-
-            // 创建数据多边形
-            const line = d3.lineRadial()
-                .angle(d => angleScale(d.skill) - Math.PI/2)
-                .radius(d => radiusScale(d.level))
-                .curve(d3.curveLinearClosed);
-
-            svg.append('path')
-                .datum(skillsData)
-                .attr('d', line)
-                .attr('fill', 'rgba(70, 130, 180, 0.5)')
-                .attr('stroke', 'steelblue')
-                .attr('stroke-width', 2);
-
-            // 添加技能标签
-            svg.selectAll('.skill-label')
-                .data(skillsData)
-                .enter()
-                .append('text')
-                .attr('x', d => (radius + 20) * Math.cos(angleScale(d.skill) - Math.PI/2))
-                .attr('y', d => (radius + 20) * Math.sin(angleScale(d.skill) - Math.PI/2))
-                .attr('text-anchor', d => {
-                    const angle = angleScale(d.skill);
-                    if (Math.abs(angle - Math.PI) < 0.1) return 'middle';
-                    return angle > Math.PI ? 'end' : 'start';
-                })
-                .attr('dy', '0.35em')
-                .text(d => `${d.skill} (${d.level}%)`);
-
-            // 添加数值点
-            svg.selectAll('.point')
-                .data(skillsData)
-                .enter()
-                .append('circle')
-                .attr('cx', d => radiusScale(d.level) * Math.cos(angleScale(d.skill) - Math.PI/2))
-                .attr('cy', d => radiusScale(d.level) * Math.sin(angleScale(d.skill) - Math.PI/2))
-                .attr('r', 4)
-                .attr('fill', 'steelblue');
-        }
-
-        // 当文档加载完成后创建图表
-        document.addEventListener('DOMContentLoaded', createRadarChart);
-    </script>
 </body>
 </html> 
