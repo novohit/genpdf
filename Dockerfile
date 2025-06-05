@@ -37,6 +37,12 @@ RUN apt-get update -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# 创建字体目录并复制字体文件
+RUN mkdir -p /usr/share/fonts/truetype/custom
+COPY assets/fonts/*.ttf /usr/share/fonts/truetype/custom/
+RUN chmod 644 /usr/share/fonts/truetype/custom/*.ttf && \
+    fc-cache -fv
+
 # 复制 package.json 和 package-lock.json
 COPY package*.json ./
 # ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true

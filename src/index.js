@@ -5,7 +5,7 @@ const handlebars = require('handlebars');
 const fs = require('fs').promises;
 const path = require('path');
 const PDFDocument = require('pdfkit');
-const { captureD3Chart, capturePieChart, captureRelationshipGraph } = require('./visualization');
+const { captureD3Chart, capturePieChart, captureRelationshipGraph, captureStreamGraph } = require('./visualization');
 
 // 注册 Handlebars 辅助函数
 handlebars.registerHelper('slice', function(arr, start, end) {
@@ -96,6 +96,82 @@ app.post('/generate-pdf', async (req, res) => {
         let skillsBarChart = '';
         let publicationBarChart = '';
         let relationshipGraphSvg = '';
+        let streamGraphSvg = '';
+
+        let streamGraphData = [
+            {
+                "x": 2014,
+                "人工智能": 0,
+                "生物信息学": 1,
+                "生物医学工程": 0,
+                "数据科学与大数据技术": 0,
+                "生物医学科学": 0
+            },
+            {
+                "x": 2015,
+                "人工智能": 0,
+                "生物信息学": 0,
+                "生物医学工程": 0,
+                "数据科学与大数据技术": 0,
+                "生物医学科学": 2
+            },
+            {
+                "x": 2018,
+                "人工智能": 1,
+                "生物信息学": 0,
+                "生物医学工程": 0,
+                "数据科学与大数据技术": 0,
+                "生物医学科学": 1
+            },
+            {
+                "x": 2019,
+                "人工智能": 0,
+                "生物信息学": 1,
+                "生物医学工程": 0,
+                "数据科学与大数据技术": 0,
+                "生物医学科学": 0
+            },
+            {
+                "x": 2020,
+                "人工智能": 2,
+                "生物信息学": 1,
+                "生物医学工程": 2,
+                "数据科学与大数据技术": 1,
+                "生物医学科学": 0
+            },
+            {
+                "x": 2021,
+                "人工智能": 4,
+                "生物信息学": 2,
+                "生物医学工程": 2,
+                "数据科学与大数据技术": 1,
+                "生物医学科学": 1
+            },
+            {
+                "x": 2022,
+                "人工智能": 2,
+                "生物信息学": 2,
+                "生物医学工程": 1,
+                "数据科学与大数据技术": 1,
+                "生物医学科学": 0
+            },
+            {
+                "x": 2023,
+                "人工智能": 7,
+                "生物信息学": 5,
+                "生物医学工程": 3,
+                "数据科学与大数据技术": 1,
+                "生物医学科学": 0
+            },
+            {
+                "x": 2024,
+                "人工智能": 2,
+                "生物信息学": 1,
+                "生物医学工程": 2,
+                "数据科学与大数据技术": 1,
+                "生物医学科学": 0
+            }
+        ];
 
         // 生成教师能力评估饼图
         skillsPieChart = await capturePieChart(page, 'skills');
@@ -107,6 +183,9 @@ app.post('/generate-pdf', async (req, res) => {
         if (relationshipGraph.length > 0) {
             relationshipGraphSvg = await captureRelationshipGraph(page, relationshipGraph);
         }
+
+        // 生成流图
+        streamGraphSvg = await captureStreamGraph(page, streamGraphData);
 
         // 将所有图表插入到HTML中
         let finalHtml = html;
@@ -133,6 +212,14 @@ app.post('/generate-pdf', async (req, res) => {
                 </div>
             `);
         }
+
+        // 插入流图
+        finalHtml = finalHtml.replace('<div id="stream-graph-placeholder"></div>', `
+            <div style="page-break-inside: avoid; margin: 20px 0;">
+                ${streamGraphSvg}
+            </div>
+        `);
+
         await page.setContent(finalHtml, {
             waitUntil: 'networkidle0'
         });
