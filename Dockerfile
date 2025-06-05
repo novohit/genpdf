@@ -17,7 +17,7 @@ RUN rm -f /etc/apt/sources.list.d/*.list \
 # 安装 Puppeteer 所需的最小系统依赖
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
-        # fonts-wqy-zenhei \
+        fonts-wqy-zenhei \
         libx11-xcb1 \
         libxcomposite1 \
         libxcursor1 \
@@ -39,8 +39,8 @@ RUN apt-get update -y \
 
 # 创建字体目录并复制字体文件
 RUN mkdir -p /usr/share/fonts/truetype/custom
-COPY assets/fonts/*.ttf /usr/share/fonts/truetype/custom/
-RUN chmod 644 /usr/share/fonts/truetype/custom/*.ttf && \
+COPY assets/fonts/* /usr/share/fonts/truetype/custom/
+RUN chmod 644 /usr/share/fonts/truetype/custom/* && \
     fc-cache -fv
 
 # 复制 package.json 和 package-lock.json
