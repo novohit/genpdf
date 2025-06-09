@@ -66,7 +66,8 @@ async function getTemplate() {
 
 app.post('/generate-pdf', async (req, res) => {
     try {
-        const { teacherData, chartOptions = {}, papers = [], collaborations = [], relationshipGraph = [] } = req.body;
+        const { teacherData, chartOptions = {}, papers = [], collaborations = [],
+         relationshipGraph = [], streamGraphData = [], experience = [] } = req.body;
         
         if (!teacherData) {
             return res.status(400).json({ error: 'Teacher data is required' });
@@ -76,7 +77,8 @@ app.post('/generate-pdf', async (req, res) => {
         const templateData = {
             ...teacherData,
             papers,
-            collaborations: collaborations.sort((a, b) => b.numCooperation - a.numCooperation) // 按合作次数降序排序
+            collaborations: collaborations.sort((a, b) => b.numCooperation - a.numCooperation), // 按合作次数降序排序
+            experience
         };
 
         // 获取并编译模板
@@ -98,81 +100,6 @@ app.post('/generate-pdf', async (req, res) => {
         let relationshipGraphSvg = '';
         let streamGraphSvg = '';
 
-        let streamGraphData = [
-            {
-                "x": 2014,
-                "人工智能": 0,
-                "生物信息学": 1,
-                "生物医学工程": 0,
-                "数据科学与大数据技术": 0,
-                "生物医学科学": 0
-            },
-            {
-                "x": 2015,
-                "人工智能": 0,
-                "生物信息学": 0,
-                "生物医学工程": 0,
-                "数据科学与大数据技术": 0,
-                "生物医学科学": 2
-            },
-            {
-                "x": 2018,
-                "人工智能": 1,
-                "生物信息学": 0,
-                "生物医学工程": 0,
-                "数据科学与大数据技术": 0,
-                "生物医学科学": 1
-            },
-            {
-                "x": 2019,
-                "人工智能": 0,
-                "生物信息学": 1,
-                "生物医学工程": 0,
-                "数据科学与大数据技术": 0,
-                "生物医学科学": 0
-            },
-            {
-                "x": 2020,
-                "人工智能": 2,
-                "生物信息学": 1,
-                "生物医学工程": 2,
-                "数据科学与大数据技术": 1,
-                "生物医学科学": 0
-            },
-            {
-                "x": 2021,
-                "人工智能": 4,
-                "生物信息学": 2,
-                "生物医学工程": 2,
-                "数据科学与大数据技术": 1,
-                "生物医学科学": 1
-            },
-            {
-                "x": 2022,
-                "人工智能": 2,
-                "生物信息学": 2,
-                "生物医学工程": 1,
-                "数据科学与大数据技术": 1,
-                "生物医学科学": 0
-            },
-            {
-                "x": 2023,
-                "人工智能": 7,
-                "生物信息学": 5,
-                "生物医学工程": 3,
-                "数据科学与大数据技术": 1,
-                "生物医学科学": 0
-            },
-            {
-                "x": 2024,
-                "人工智能": 2,
-                "生物信息学": 1,
-                "生物医学工程": 2,
-                "数据科学与大数据技术": 1,
-                "生物医学科学": 0
-            }
-        ];
-
         // 生成教师能力评估饼图
         skillsPieChart = await capturePieChart(page, 'skills');
     
@@ -184,8 +111,10 @@ app.post('/generate-pdf', async (req, res) => {
             relationshipGraphSvg = await captureRelationshipGraph(page, relationshipGraph);
         }
 
-        // 生成流图
-        streamGraphSvg = await captureStreamGraph(page, streamGraphData);
+        // 生成河流图
+        if (streamGraphData.length > 0) {
+            streamGraphSvg = await captureStreamGraph(page, streamGraphData);
+        }
 
         // 将所有图表插入到HTML中
         let finalHtml = html;
@@ -214,11 +143,13 @@ app.post('/generate-pdf', async (req, res) => {
         }
 
         // 插入流图
-        finalHtml = finalHtml.replace('<div id="stream-graph-placeholder"></div>', `
-            <div style="page-break-inside: avoid; margin: 20px 0;">
-                ${streamGraphSvg}
-            </div>
-        `);
+        if (streamGraphData.length > 0) {
+            finalHtml = finalHtml.replace('<div id="stream-graph-placeholder"></div>', `
+                <div style="page-break-inside: avoid; margin: 20px 0;">
+                    ${streamGraphSvg}
+                </div>
+            `);
+        }
 
         await page.setContent(finalHtml, {
             waitUntil: 'networkidle0'

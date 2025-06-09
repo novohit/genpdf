@@ -162,6 +162,67 @@
             font-weight: 500;
             color: #2f508f;
         }
+        .experience-section {
+            margin-bottom: 20px;
+        }
+        .company-block {
+            margin-bottom: 16px !important;
+        }
+        .company-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .company-logo {
+            width: 32px;
+            height: 32px;
+            margin-right: 10px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+        .company-info {
+            flex: 1;
+        }
+        .company-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2f508f;
+        }
+        .position-item {
+            margin-bottom: 12px;
+            padding-left: 42px;
+        }
+        .position-title {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        .position-meta {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 2px;
+        }
+        .position-location {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 4px;
+        }
+        .position-description {
+            color: #444;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        .bullet-point {
+            margin-bottom: 6px;
+            position: relative;
+            padding-left: 20px;
+        }
+        .bullet-point:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #2f508f;
+        }
     </style>
 </head>
 <body>
@@ -257,11 +318,11 @@
     <div class="section">
         <div class="section-title">学科领域</div>
         <div class="flex flex-wrap gap-2">
-            {{#each (slice major2Domain 0 3)}}
+            {{#each (slice major2Domain 0 5)}}
             <div class="domain-tag">{{this}}</div>
             {{/each}}
-            {{#if (gt major2Domain.length 3)}}
-            <div class="domain-tag">+{{subtract major2Domain.length 3}}</div>
+            {{#if (gt major2Domain.length 5)}}
+            <div class="domain-tag">+{{subtract major2Domain.length 5}}</div>
             {{/if}}
         </div>
     </div>
@@ -271,11 +332,11 @@
     <div class="section">
         <div class="section-title">研究领域</div>
         <div class="flex flex-wrap gap-2">
-            {{#each (slice major3Domain 0 3)}}
+            {{#each (slice major3Domain 0 10)}}
             <div class="domain-tag">{{this}}</div>
             {{/each}}
-            {{#if (gt major3Domain.length 3)}}
-            <div class="domain-tag">+{{subtract major3Domain.length 3}}</div>
+            {{#if (gt major3Domain.length 10)}}
+            <div class="domain-tag">+{{subtract major3Domain.length 10}}</div>
             {{/if}}
         </div>
     </div>
@@ -284,16 +345,6 @@
     <div class="section">
         <div class="section-title">个人简介</div>
         <div class="description">{{omitDescription}}</div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">所属院校信息</div>
-        <div class="school-info">
-            <div class="school-name">{{schoolNameEn}}</div>
-            <div class="school-detail">地区：{{region}}</div>
-            <div class="school-detail">世界排名：{{ranking}}</div>
-            <div class="school-detail">论文数量：{{paperNum}}</div>
-        </div>
     </div>
 
     <div class="section">
@@ -307,7 +358,54 @@
         {{/if}}
     </div>
 
-    <div class="section">
+    {{#if experience}}
+    <div class="section" style="margin-bottom: 16px;">
+        <div class="section-title" style="margin-bottom: 12px;">工作经历</div>
+        <div class="experience-section">
+            {{#each experience}}
+            <div class="company-block">
+                <div class="company-header">
+                    {{#if company_logo_url}}
+                    <img src="{{company_logo_url}}" alt="{{company}} logo" class="company-logo">
+                    {{else}}
+                    <div class="company-logo" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 0.8em;">
+                        {{slice company 0 1}}
+                    </div>
+                    {{/if}}
+                    <div class="company-info">
+                        <div class="company-name" style="margin-bottom: 1px;">
+                            {{#if url}}
+                            <a href="{{url}}" target="_blank" style="color: inherit; text-decoration: none;">{{company}}</a>
+                            {{else}}
+                            {{company}}
+                            {{/if}}
+                        </div>
+                        {{#if duration}}<div style="color: #666; font-size: 0.85em;">{{duration}}</div>{{/if}}
+                    </div>
+                </div>
+
+                {{#if positions}}
+                {{#each positions}}
+                <div class="position-item">
+                    <div class="position-title">{{title}}</div>
+                    <div class="position-meta">{{start_date}} - {{end_date}}</div>
+                    <div class="position-location">{{location}}</div>
+                </div>
+                {{/each}}
+                {{else}}
+                <div class="position-item">
+                    <div class="position-title">{{title}}</div>
+                    <div class="position-meta">{{start_date}} - {{end_date}}</div>
+                    <div class="position-location">{{location}}</div>
+                </div>
+                {{/if}}
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
+
+    <!-- <div class="section">
         <div class="section-title">教育背景</div>
         {{#each education}}
         <div class="experience-item">
@@ -317,21 +415,12 @@
             <div class="experience-date">{{startYear}} - {{endYear}}</div>
         </div>
         {{/each}}
-    </div>
+    </div> -->
 
-    {{#if achievements}}
-    <div class="section">
-        <div class="section-title">成就与荣誉</div>
-        {{#each achievements}}
-        <div class="info-item">• {{this}}</div>
-        {{/each}}
-    </div>
-    {{/if}}
-
-    <div id="skills-pie-chart-placeholder"></div>
+    <!-- <div id="skills-pie-chart-placeholder"></div>
     <div id="achievement-pie-chart-placeholder"></div>
     <div id="skills-bar-chart-placeholder"></div>
-    <div id="publication-bar-chart-placeholder"></div>
+    <div id="publication-bar-chart-placeholder"></div> -->
 
     {{#if papers}}
     <div class="section">
@@ -359,12 +448,12 @@
         <div id="relationship-graph-placeholder"></div>
         <div class="collaboration-list">
             {{#each (slice collaborations 0 5)}}
-            <div class="collaboration-item" style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <div class="collaboration-item" style="padding: 6px 0; border-bottom: 1px solid #eee;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
                     <div style="font-weight: 500;">{{partnerName}}</div>
                     <div style="color: #666;">合作次数：{{numCooperation}}</div>
                 </div>
-                <div style="color: #666; font-size: 0.9em;">{{partnerSchool}}</div>
+                <div style="color: #666; font-size: 0.85em;">{{partnerSchool}}</div>
             </div>
             {{/each}}
             {{#if (gt collaborations.length 5)}}
