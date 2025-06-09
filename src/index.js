@@ -180,6 +180,87 @@ app.post('/generate-pdf', async (req, res) => {
     }
 });
 
+// 新增工程师简历生成路由
+app.post('/generate-engineer-pdf', async (req, res) => {
+    try {
+        const { engineerData } = req.body;
+        
+        if (!engineerData) {
+            return res.status(400).json({ error: 'Engineer data is required' });
+        }
+
+        // Parse experience JSON if it exists and is a string
+        if (engineerData.experience && typeof engineerData.experience === 'string') {
+            try {
+                engineerData.experience = JSON.parse(engineerData.experience);
+            } catch (parseError) {
+                console.warn('Failed to parse experience JSON:', parseError);
+                // Keep the original string value if parsing fails
+            }
+        }
+
+        // Parse education JSON if it exists and is a string
+        if (engineerData.education && typeof engineerData.education === 'string') {
+            try {
+                engineerData.education = JSON.parse(engineerData.education);
+            } catch (parseError) {
+                console.warn('Failed to parse education JSON:', parseError);    
+            }
+        }
+
+        // Parse publications JSON if it exists and is a string
+        if (engineerData.publications && typeof engineerData.publications === 'string') {
+            try {
+                engineerData.publications = JSON.parse(engineerData.publications);
+            } catch (parseError) {
+                console.warn('Failed to parse publication JSON:', parseError);
+            }
+        }
+        
+
+        // 获取并编译工程师简历模板
+        const templatePath = path.join(__dirname, 'templates', 'engineer-resume.html');
+        const template = await fs.readFile(templatePath, 'utf-8');
+        const compiledTemplate = handlebars.compile(template);
+        const html = compiledTemplate(engineerData);
+
+        // 启动 Puppeteer
+        const browser = await puppeteer.launch({
+            headless: 'new',
+            args: ['--no-sandbox']
+        });
+        const page = await browser.newPage();
+
+        // 设置页面内容
+        await page.setContent(html, {
+            waitUntil: 'networkidle0'
+        });
+
+        // 生成 PDF
+        const pdf = await page.pdf({
+            format: 'A4',
+            margin: {
+                top: '20mm',
+                right: '20mm',
+                bottom: '20mm',
+                left: '20mm'
+            },
+            printBackground: true
+        });
+
+        await browser.close();
+
+        // 设置响应头并发送 PDF
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=engineer-resume.pdf');
+        res.send(pdf);
+
+    } catch (error) {
+        console.error('Engineer PDF generation error:', error);
+        res.status(500).json({ error: 'Failed to generate engineer PDF' });
+    }
+});
+
 // 使用 PDFKit 生成 PDF
 app.post('/generate-pdf-pdfkit', async (req, res) => {
     try {

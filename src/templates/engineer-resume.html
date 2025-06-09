@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工程师简历</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .resume-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .resume-header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 2px solid #333;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .info-item {
+            margin-bottom: 8px;
+        }
+        .info-label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .skill-tag {
+            display: inline-block;
+            background-color: #E8F3FF;
+            color: #2f508f;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            margin: 4px;
+        }
+        .project-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #e6e6e6;
+            border-radius: 8px;
+        }
+        .project-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2f508f;
+            margin-bottom: 8px;
+        }
+        .project-duration {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+        .project-description {
+            margin-bottom: 10px;
+        }
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tech-tag {
+            background-color: #f3f4f6;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #4b5563;
+        }
+        .experience-section {
+            margin-bottom: 20px;
+        }
+        .company-block {
+            margin-bottom: 16px !important;
+        }
+        .company-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .company-logo {
+            width: 32px;
+            height: 32px;
+            margin-right: 10px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+        .company-info {
+            flex: 1;
+        }
+        .company-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2f508f;
+        }
+        .position-item {
+            margin-bottom: 12px;
+            padding-left: 42px;
+        }
+        .position-title {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        .position-meta {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 2px;
+        }
+        .position-location {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 4px;
+        }
+        .position-description {
+            color: #444;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        .bullet-point {
+            margin-bottom: 6px;
+            position: relative;
+            padding-left: 20px;
+        }
+        .bullet-point:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #2f508f;
+        }
+        .skill-section {
+            margin-top: 15px;
+        }
+        .skill-category {
+            margin-bottom: 15px;
+        }
+        .skill-category-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2f508f;
+        }
+        .certification-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background-color: #f8fafc;
+            border-radius: 6px;
+        }
+        .certification-icon {
+            margin-right: 12px;
+            color: #2f508f;
+            font-size: 1.2em;
+        }
+        .publications-section {
+            margin-bottom: 15px;
+        }
+        .publication-item {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border: 1px solid #e6e6e6;
+            border-radius: 6px;
+            background-color: #fff;
+        }
+        .publication-title {
+            font-size: 1em;
+            font-weight: 600;
+            color: #2f508f;
+            margin-bottom: 4px;
+        }
+        .publication-subtitle {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 2px;
+        }
+        .publication-date {
+            color: #666;
+            font-size: 0.8em;
+            margin-bottom: 0;
+        }
+        .publication-description {
+            color: #444;
+            font-size: 0.9em;
+            line-height: 1.6;
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+    <div class="resume-header">
+        <h1>{{name}}</h1>
+        <div class="title-tag">{{title}}</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">基本信息</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">姓名：</span>
+                <span>{{name}}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">职位：</span>
+                <span>{{position}}</span>
+            </div>
+            {{#if email}}
+            <div class="info-item">
+                <span class="info-label">邮箱：</span>
+                <span>{{email}}</span>
+            </div>
+            {{/if}}
+            {{#if phone}}
+            <div class="info-item">
+                <span class="info-label">电话：</span>
+                <span>{{phone}}</span>
+            </div>
+            {{/if}}
+            {{#if location}}
+            <div class="info-item">
+                <span class="info-label">地区：</span>
+                <span>{{location}}</span>
+            </div>
+            {{/if}}
+            {{#if yearsOfExperience}}
+            <div class="info-item">
+                <span class="info-label">工作年限：</span>
+                <span>{{yearsOfExperience}}年</span>
+            </div>
+            {{/if}}
+        </div>
+    </div>
+
+    {{#if summary}}
+    <div class="section">
+        <div class="section-title">个人简介</div>
+        <div class="description">{{summary}}</div>
+    </div>
+    {{/if}}
+
+    {{#if skills}}
+    <div class="section">
+        <div class="section-title">技能专长</div>
+        <div class="skill-section">
+            {{#each skills}}
+            <div class="skill-category">
+                <div class="skill-category-title">{{category}}</div>
+                <div class="flex flex-wrap gap-2">
+                    {{#each items}}
+                    <div class="skill-tag">{{this}}</div>
+                    {{/each}}
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
+
+    {{#if projects}}
+    <div class="section">
+        <div class="section-title">项目经验</div>
+        {{#each projects}}
+        <div class="project-item">
+            <div class="project-title">{{name}}</div>
+            <div class="project-duration">{{duration}}</div>
+            <div class="project-description">{{description}}</div>
+            {{#if responsibilities}}
+            <div style="margin-bottom: 10px;">
+                <div style="font-weight: 500; margin-bottom: 5px;">主要职责：</div>
+                {{#each responsibilities}}
+                <div class="bullet-point">{{this}}</div>
+                {{/each}}
+            </div>
+            {{/if}}
+            {{#if achievements}}
+            <div style="margin-bottom: 10px;">
+                <div style="font-weight: 500; margin-bottom: 5px;">主要成就：</div>
+                {{#each achievements}}
+                <div class="bullet-point">{{this}}</div>
+                {{/each}}
+            </div>
+            {{/if}}
+            {{#if technologies}}
+            <div class="project-tech">
+                {{#each technologies}}
+                <span class="tech-tag">{{this}}</span>
+                {{/each}}
+            </div>
+            {{/if}}
+        </div>
+        {{/each}}
+    </div>
+    {{/if}}
+
+    {{#if experience}}
+    <div class="section" style="margin-bottom: 16px;">
+        <div class="section-title" style="margin-bottom: 12px;">工作经历</div>
+        <div class="experience-section">
+            {{#each experience}}
+            <div class="company-block">
+                <div class="company-header">
+                    {{#if company_logo_url}}
+                    <img src="{{company_logo_url}}" alt="{{company}} logo" class="company-logo">
+                    {{else}}
+                    <div class="company-logo" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 0.8em;">
+                        {{slice company 0 1}}
+                    </div>
+                    {{/if}}
+                    <div class="company-info">
+                        <div class="company-name" style="margin-bottom: 1px;">
+                            {{#if url}}
+                            <a href="{{url}}" target="_blank" style="color: inherit; text-decoration: none;">{{company}}</a>
+                            {{else}}
+                            {{company}}
+                            {{/if}}
+                        </div>
+                        {{#if duration}}<div style="color: #666; font-size: 0.85em;">{{duration}}</div>{{/if}}
+                    </div>
+                </div>
+
+                {{#if positions}}
+                {{#each positions}}
+                <div class="position-item">
+                    <div class="position-title">{{title}}</div>
+                    <div class="position-meta">{{start_date}} - {{end_date}}</div>
+                    <div class="position-location">{{location}}</div>
+                </div>
+                {{/each}}
+                {{else}}
+                <div class="position-item">
+                    <div class="position-title">{{title}}</div>
+                    <div class="position-meta">{{start_date}} - {{end_date}}</div>
+                    <div class="position-location">{{location}}</div>
+                </div>
+                {{/if}}
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
+
+    {{#if education}}
+    <div class="section">
+        <div class="section-title">教育背景</div>
+        {{#each education}}
+        <div class="experience-item" style="margin-bottom: 20px;">
+            <div class="company-header">
+                {{#if institute_logo_url}}
+                <img src="{{institute_logo_url}}" alt="{{title}} logo" class="company-logo">
+                {{else}}
+                <div class="company-logo" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 0.8em;">
+                    {{slice title 0 1}}
+                </div>
+                {{/if}}
+                <div class="company-info">
+                    <div class="company-name">
+                        {{#if url}}
+                        <a href="{{url}}" target="_blank" style="color: inherit; text-decoration: none;">{{title}}</a>
+                        {{else}}
+                        {{title}}
+                        {{/if}}
+                    </div>
+                    <div style="color: #666; font-size: 0.9em;">{{degree}} · {{field}}</div>
+                </div>
+            </div>
+            {{#if description}}
+            <div class="position-description" style="margin-top: 8px; margin-left: 42px;">{{description}}</div>
+            {{/if}}
+        </div>
+        {{/each}}
+    </div>
+    {{/if}}
+
+    {{#if certifications}}
+    <div class="section">
+        <div class="section-title">证书认证</div>
+        {{#each certifications}}
+        <div class="certification-item">
+            <span class="certification-icon">📜</span>
+            <div>
+                <div style="font-weight: 500;">{{name}}</div>
+                <div style="font-size: 0.9em; color: #666;">{{issuer}} · {{date}}</div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+    {{/if}}
+
+    {{#if publications}}
+    <div class="section">
+        <div class="section-title">发表论文</div>
+        <div class="publications-section">
+            {{#each publications}}
+            <div class="publication-item">
+                <div class="publication-title">{{title}}</div>
+                <div class="publication-subtitle">{{subtitle}}</div>
+                <div class="publication-date">{{date}}</div>
+                <!-- <div class="publication-description">{{description}}</div> -->
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
+
+</body>
+</html> 
