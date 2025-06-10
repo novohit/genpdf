@@ -216,6 +216,42 @@ app.post('/generate-engineer-pdf', async (req, res) => {
                 console.warn('Failed to parse publication JSON:', parseError);
             }
         }
+
+        // Parse projects JSON if it exists and is a string
+        if (engineerData.projects && typeof engineerData.projects === 'string') {
+            try {
+                engineerData.projects = JSON.parse(engineerData.projects);
+            } catch (parseError) {
+                console.warn('Failed to parse projects JSON:', parseError);
+            }
+        }
+
+        // Parse patents JSON if it exists and is a string
+        if (engineerData.patents && typeof engineerData.patents === 'string') {
+            try {
+                engineerData.patents = JSON.parse(engineerData.patents);
+            } catch (parseError) {
+                console.warn('Failed to parse patents JSON:', parseError);
+            }
+        }
+        
+        // Parse honorsAndAwards JSON if it exists and is a string
+        if (engineerData.honorsAndAwards && typeof engineerData.honorsAndAwards === 'string') {
+            try {
+                engineerData.honorsAndAwards = JSON.parse(engineerData.honorsAndAwards);
+            } catch (parseError) {
+                console.warn('Failed to parse honorsAndAwards JSON:', parseError);
+            }
+        }
+
+        // Parse certifications JSON if it exists and is a string
+        if (engineerData.certifications && typeof engineerData.certifications === 'string') {
+            try {
+                engineerData.certifications = JSON.parse(engineerData.certifications);
+            } catch (parseError) {
+                console.warn('Failed to parse certifications JSON:', parseError);
+            }
+        }
         
 
         // 获取并编译工程师简历模板
