@@ -25,6 +25,11 @@ handlebars.registerHelper('subtract', function(a, b) {
     return a - b;
 });
 
+// 添加 or 辅助函数
+handlebars.registerHelper('or', function(a, b) {
+    return a || b;
+});
+
 // 排序辅助函数
 handlebars.registerHelper('sort', function(array, field, direction) {
     if (!Array.isArray(array)) return [];

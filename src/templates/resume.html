@@ -173,13 +173,6 @@
             align-items: center;
             margin-bottom: 8px;
         }
-        .company-logo {
-            width: 32px;
-            height: 32px;
-            margin-right: 10px;
-            border-radius: 4px;
-            object-fit: cover;
-        }
         .company-info {
             flex: 1;
         }
@@ -188,24 +181,10 @@
             font-weight: 600;
             color: #2f508f;
         }
-        .position-item {
-            margin-bottom: 12px;
-            padding-left: 42px;
-        }
         .position-title {
             font-weight: 500;
             color: #333;
             margin-bottom: 2px;
-        }
-        .position-meta {
-            color: #666;
-            font-size: 0.85em;
-            margin-bottom: 2px;
-        }
-        .position-location {
-            color: #666;
-            font-size: 0.85em;
-            margin-bottom: 4px;
         }
         .position-description {
             color: #444;
@@ -222,6 +201,11 @@
             position: absolute;
             left: 0;
             color: #2f508f;
+        }
+        .date-display {
+            color: #000;
+            font-size: 13px;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -265,7 +249,7 @@
             {{/unless}}
             {{/if}}
             {{#if overseasExperience}}
-            {{#unless (eq overseasExperience "不清楚")}}
+            {{#unless (or (eq overseasExperience "不清楚") (eq overseasExperience "无"))}}
             <div class="info-item">
                 <span class="info-label">海外经历：</span>
                 <span>{{overseasExperience}}</span>
@@ -273,7 +257,7 @@
             {{/unless}}
             {{/if}}
             {{#if corporateExperience}}
-            {{#unless (eq corporateExperience "不清楚")}}
+            {{#unless (or (eq corporateExperience "不清楚") (eq corporateExperience "无"))}}
             <div class="info-item">
                 <span class="info-label">企业经历：</span>
                 <span>{{corporateExperience}}</span>
@@ -347,7 +331,7 @@
         <div class="description">{{omitDescription}}</div>
     </div>
 
-    <div class="section">
+    <!-- <div class="section">
         <div class="section-title">测试标题</div>
         {{#if researchArea.length}}
         <div class="domain-list">
@@ -356,66 +340,55 @@
             {{/each}}
         </div>
         {{/if}}
-    </div>
+    </div> -->
 
-    {{#if experience}}
+    {{#if employments}}
     <div class="section" style="margin-bottom: 16px;">
-        <div class="section-title" style="margin-bottom: 12px;">工作经历</div>
+        <div class="section-title" style="margin-bottom: 12px; font-size: 18px;">工作经历</div>
         <div class="experience-section">
-            {{#each experience}}
+            {{#each employments}}
+            {{#if isValid}}
             <div class="company-block">
                 <div class="company-header">
-                    {{#if company_logo_url}}
-                    <img src="{{company_logo_url}}" alt="{{company}} logo" class="company-logo">
-                    {{else}}
-                    <div class="company-logo" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 0.8em;">
-                        {{slice company 0 1}}
-                    </div>
-                    {{/if}}
-                    <div class="company-info">
-                        <div class="company-name" style="margin-bottom: 1px;">
-                            {{#if url}}
-                            <a href="{{url}}" target="_blank" style="color: inherit; text-decoration: none;">{{company}}</a>
-                            {{else}}
-                            {{company}}
-                            {{/if}}
+                    <div class="company-info" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="company-name" style="color: #000; font-size: 15px;">
+                            {{organization}}{{#if roleTitle}} - {{roleTitle}}{{/if}}
                         </div>
-                        {{#if duration}}<div style="color: #666; font-size: 0.85em;">{{duration}}</div>{{/if}}
+                        <div class="date-display">
+                            {{startDate}} - {{#if (eq endDate "至今")}}至今{{else}}{{endDate}}{{/if}}
+                        </div>
                     </div>
                 </div>
-
-                {{#if positions}}
-                {{#each positions}}
-                <div class="position-item">
-                    <div class="position-title">{{title}}</div>
-                    <div class="position-meta">{{start_date}} - {{end_date}}</div>
-                    <div class="position-location">{{location}}</div>
-                </div>
-                {{/each}}
-                {{else}}
-                <div class="position-item">
-                    <div class="position-title">{{title}}</div>
-                    <div class="position-meta">{{start_date}} - {{end_date}}</div>
-                    <div class="position-location">{{location}}</div>
-                </div>
-                {{/if}}
             </div>
+            {{/if}}
             {{/each}}
         </div>
     </div>
     {{/if}}
 
-    <!-- <div class="section">
-        <div class="section-title">教育背景</div>
-        {{#each education}}
-        <div class="experience-item">
-            <div class="experience-title">{{school}}</div>
-            <div>专业：{{major}}</div>
-            <div>学历：{{degree}}</div>
-            <div class="experience-date">{{startYear}} - {{endYear}}</div>
+    {{#if educations}}
+    <div class="section" style="margin-bottom: 16px;">
+        <div class="section-title" style="margin-bottom: 12px; font-size: 18px;">教育经历</div>
+        <div class="experience-section">
+            {{#each educations}}
+            {{#if isValid}}
+            <div class="company-block">
+                <div class="company-header">
+                    <div class="company-info" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="company-name" style="color: #000; font-size: 15px;">
+                            {{organization}}{{#if degree}} - {{degree}}{{/if}}
+                        </div>
+                        <div class="date-display">
+                            {{startDate}} - {{#if (eq endDate "至今")}}至今{{else}}{{endDate}}{{/if}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/if}}
+            {{/each}}
         </div>
-        {{/each}}
-    </div> -->
+    </div>
+    {{/if}}
 
     <!-- <div id="skills-pie-chart-placeholder"></div>
     <div id="achievement-pie-chart-placeholder"></div>
