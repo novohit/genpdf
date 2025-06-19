@@ -60,7 +60,10 @@ const port = process.env.PORT || 3000;
 const FONT_PATH = path.join(__dirname, '..', 'assets', 'fonts', 'simhei.ttf');
 
 app.use(cors());
-app.use(express.json());
+// app.use(express.json());
+// 增加请求体大小限制到50mb
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb', extended: true}));
 
 // 读取模板文件
 async function getTemplate() {
@@ -71,8 +74,21 @@ async function getTemplate() {
 
 app.post('/generate-pdf', async (req, res) => {
     try {
-        const { teacherData, chartOptions = {}, papers = [], collaborations = [],
-         relationshipGraph = [], streamGraphData = [], experience = [] } = req.body;
+        const { 
+            teacherData, 
+            chartOptions = {}, 
+            papers = [], 
+            collaborations = [],
+            relationshipGraph = [], 
+            streamGraphData = [], 
+            experience = [],
+            config = {
+                maxPapers: 5,
+                maxCollaborations: 5,
+                maxMajor2Domain: 10,
+                maxMajor3Domain: 10
+            }
+        } = req.body;
         
         if (!teacherData) {
             return res.status(400).json({ error: 'Teacher data is required' });
@@ -83,7 +99,8 @@ app.post('/generate-pdf', async (req, res) => {
             ...teacherData,
             papers,
             collaborations: collaborations.sort((a, b) => b.numCooperation - a.numCooperation), // 按合作次数降序排序
-            experience
+            experience,
+            config // 传递配置到模板
         };
 
         // 获取并编译模板

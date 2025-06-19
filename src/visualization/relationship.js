@@ -128,7 +128,7 @@ const captureRelationshipGraph = async (page, data, useFixedSize = true) => {
                 .attr('text-anchor', 'middle')
                 .attr('fill', '#1d53ff')
                 .attr('font-size', '11px')
-                .text(item.id);
+                .text(item.text);
         });
 
         // 获取同心环的半径，用于定位标签

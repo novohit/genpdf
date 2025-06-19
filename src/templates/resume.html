@@ -211,7 +211,7 @@
 </head>
 <body>
     <div class="resume-header">
-        <h1>{{derivedTeacherName}}</h1>
+        <h1><a href="https://et-platform-dev3.ikchain.com.cn/talent/{{teacherId}}" target="_blank">{{derivedTeacherName}}</a></h1>
         {{#if normalizedTitle}}
         <div class="title-tag">{{normalizedTitle}}</div>
         {{/if}}
@@ -302,11 +302,11 @@
     <div class="section">
         <div class="section-title">学科领域</div>
         <div class="flex flex-wrap gap-2">
-            {{#each (slice major2Domain 0 5)}}
+            {{#each (slice major2Domain 0 config.maxMajor2Domain)}}
             <div class="domain-tag">{{this}}</div>
             {{/each}}
-            {{#if (gt major2Domain.length 5)}}
-            <div class="domain-tag">+{{subtract major2Domain.length 5}}</div>
+            {{#if (gt major2Domain.length config.maxMajor2Domain)}}
+            <div class="domain-tag">+{{subtract major2Domain.length config.maxMajor2Domain}}</div>
             {{/if}}
         </div>
     </div>
@@ -316,11 +316,11 @@
     <div class="section">
         <div class="section-title">研究领域</div>
         <div class="flex flex-wrap gap-2">
-            {{#each (slice major3Domain 0 10)}}
+            {{#each (slice major3Domain 0 config.maxMajor3Domain)}}
             <div class="domain-tag">{{this}}</div>
             {{/each}}
-            {{#if (gt major3Domain.length 10)}}
-            <div class="domain-tag">+{{subtract major3Domain.length 10}}</div>
+            {{#if (gt major3Domain.length config.maxMajor3Domain)}}
+            <div class="domain-tag">+{{subtract major3Domain.length config.maxMajor3Domain}}</div>
             {{/if}}
         </div>
     </div>
@@ -400,13 +400,13 @@
         <div class="section-title">近年发表的论文</div>
         <div id="stream-graph-placeholder"></div>
         <div class="paper-list">
-            {{#each (slice papers 0 5)}}
+            {{#each (slice papers 0 config.maxPapers)}}
             <div class="paper-item">
                 <div class="paper-title">{{title}}</div>
                 <div class="paper-source">{{paperSource}}</div>
                 <div class="paper-authors">{{authorList}}</div>
                 <div class="paper-meta">
-                    <div>被引用次数：{{default timesCited 0}}</div>
+                    <div>被引用次数：{{default cited 0}}</div>
                     <div>{{publicationDate}}</div>
                 </div>
             </div>
@@ -420,7 +420,7 @@
         <div class="section-title">学术合作</div>
         <div id="relationship-graph-placeholder"></div>
         <div class="collaboration-list">
-            {{#each (slice collaborations 0 5)}}
+            {{#each (slice collaborations 0 config.maxCollaborations)}}
             <div class="collaboration-item" style="padding: 6px 0; border-bottom: 1px solid #eee;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
                     <div style="font-weight: 500;">{{partnerName}}</div>
@@ -429,10 +429,10 @@
                 <div style="color: #666; font-size: 0.85em;">{{partnerSchool}}</div>
             </div>
             {{/each}}
-            {{#if (gt collaborations.length 5)}}
-            <!-- <div style="text-align: right; padding: 10px 0; color: #666; font-size: 0.9em;">
-                还有 {{subtract collaborations.length 5}} 个合作者
-            </div> -->
+            {{#if (gt collaborations.length config.maxCollaborations)}}
+            <div style="text-align: right; padding: 10px 0; color: #666; font-size: 0.9em;">
+                还有 {{subtract collaborations.length config.maxCollaborations}} 个合作者
+            </div>
             {{/if}}
         </div>
     </div>
