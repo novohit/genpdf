@@ -6,6 +6,7 @@ from tqdm import tqdm
 from datetime import datetime
 
 base_url = "http://172.22.121.63:32738/api"
+pdf_save_path = "../output/resumes_v1"
 
 def fetch_talents(token):
     url = f"{base_url}/talents/filters"
@@ -22,7 +23,7 @@ def fetch_talents(token):
         },
         "keyword": "",
         "page": 0,
-        "size": 500,
+        "size": 5,
         "needAggregations": True
     }
     
@@ -35,6 +36,66 @@ def fetch_talents(token):
     except requests.exceptions.RequestException as e:
         print(f"Error making request: {e}")
         return None
+
+def transform_coauthor_data(api_data):
+    """
+    Transform co-author data from API format to visualization format.
+    
+    Args:
+        api_data (list): List of co-author data from API
+        
+    Returns:
+        list: Transformed data containing top 20 co-authors sorted by cooperation count
+    """
+    # Sort by number of cooperations in descending order
+    sorted_data = sorted(api_data, key=lambda x: x.get('numCooperation', 0), reverse=True)
+    
+    # Take only top 20 co-authors
+    top_coauthors = sorted_data[:20]
+    
+    # Transform the data format
+    transformed_data = [
+        {
+            'text': item.get('partnerName', ''),
+            'id': item.get('partnerId', ''),
+            'strength': item.get('numCooperation', 0)
+        }
+        for item in top_coauthors
+    ]
+    
+    return transformed_data
+
+def transform_to_stream_graph_data(interest_infos):
+    """
+    Transform interest information into stream graph data format.
+    
+    Args:
+        interest_infos (list): List of interest information containing keyword and year count data
+        
+    Returns:
+        list: Transformed data for stream graph visualization
+    """
+    # Get all unique years from the first interest info's keyword_year_count_info
+    years = sorted(set(
+        int(item['year']) 
+        for item in interest_infos[0]['keyword_year_count_info']
+    ))
+    
+    # Create data points for each year
+    return [
+        {
+            'x': year,
+            **{
+                info['keyword']: next(
+                    (item['count'] for item in info['keyword_year_count_info'] 
+                     if int(item['year']) == year),
+                    0  # default value if year not found
+                )
+                for info in interest_infos
+            }
+        }
+        for year in years
+    ]
 
 def fetch_teacher_papers(teacher_id, token):
     url = f"{base_url}/papers/{teacher_id}/page"
@@ -57,9 +118,47 @@ def fetch_teacher_papers(teacher_id, token):
     except requests.exceptions.RequestException as e:
         print(f"Error fetching papers for teacher {teacher_id}: {e}")
         return []
+    
+def fetch_teacher_collaborations(teacher_id, token):
+    url = f"{base_url}/talents/teacher/cooperation?teacherId={teacher_id}&onlyDomestic=false"
+    
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
 
-def generate_resume(teacher_data, papers, token, index=None):
-    url = "http://localhost:3000/generate-pdf"
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        response_data = response.json()
+        return response_data.get('data', [])
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching collaborations for teacher {teacher_id}: {e}")
+        return []
+    
+def fetch_paper_stream_graph(teacher_id, token):
+    url = f"{base_url}/talents/paper-stream-graph"
+    
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+
+    payload = {
+        "teacherId": teacher_id,
+    }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        response_data = response.json()
+        return response_data.get('data', [])
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching paper stream graph for teacher {teacher_id}: {e}")
+        return []
+
+def generate_resume(teacher_data, papers, collaborations=[], collaborations_chart=[], paper_stream_graph_data=[], index=None):
+    url = "http://172.22.121.63:32301/generate-pdf"
     
     headers = {
         'Authorization': f'Bearer {token}',
@@ -68,7 +167,16 @@ def generate_resume(teacher_data, papers, token, index=None):
     
     payload = {
         "teacherData": teacher_data,
-        "papers": papers
+        "papers": papers,
+        "collaborations": collaborations,
+        "relationshipGraph": collaborations_chart,
+        "streamGraphData": paper_stream_graph_data,
+        "config": {
+            "maxPapers": 1000,
+                "maxCollaborations": 5,
+                "maxMajor2Domain": 10,
+                "maxMajor3Domain": 10
+        }
     }
     
     try:
@@ -77,9 +185,12 @@ def generate_resume(teacher_data, papers, token, index=None):
         
         # 获取教师姓名，用于文件名
         teacher_name = teacher_data.get('derivedTeacherName', 'unknown')
+        ranking = teacher_data.get('ranking', 'null')
+        famous_titles_level = teacher_data.get('famousTitlesLevel', 'null')
+        job_title_level = teacher_data.get('jobTitleLevel', 'null')
         # 构建PDF文件路径，添加序号
-        index_str = f"{index:03d}_" if index is not None else ""  # 格式化为3位数，例如：001_
-        pdf_path = f"../output/resumes_order/{index_str}{teacher_name}_resume.pdf"
+        index_str = f"{index:04d}_" if index is not None else ""  # 格式化为3位数，例如：001_
+        pdf_path = f"{pdf_save_path}/{index_str}{teacher_name}_papers_{len(papers)}_rank_{ranking}_title_{famous_titles_level}_job_{job_title_level}_resume.pdf"
         
         # 将PDF内容写入文件
         with open(pdf_path, 'wb') as f:
@@ -110,7 +221,11 @@ def process_single_talent(talent, token, index=None):
     
     print(f"\nProcessing {teacher_name} (ID: {teacher_id})")
     papers = fetch_teacher_papers(teacher_id, token)
-    result = generate_resume(talent, papers, token, index)
+    collaborations = fetch_teacher_collaborations(teacher_id, token)
+    collaborations_chart = transform_coauthor_data(collaborations)
+    paper_stream_graph = fetch_paper_stream_graph(teacher_id, token)
+    paper_stream_graph_data = transform_to_stream_graph_data(paper_stream_graph)
+    result = generate_resume(talent, papers, collaborations, collaborations_chart, paper_stream_graph_data, index)
     
     if result is not None:
         return {
@@ -128,7 +243,7 @@ def process_single_talent(talent, token, index=None):
         }
 
 if __name__ == "__main__":
-    os.makedirs("../output/resumes_order", exist_ok=True)
+    os.makedirs(pdf_save_path, exist_ok=True)
     
     start_time = datetime.now()
     token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOjc2LCJkZXZpY2UiOiJkZWZhdWx0LWRldmljZSIsImVmZiI6MTc1MjY1MjU1MjAzOCwicm5TdHIiOiJXT2syeWgzRlFkaGJ1eVd3NkgxamRPbm9DUVFVNUJMMyJ9.OvZKcdEZQk-Eg1rtN35ZYoTxqFh-RMtT9nK-iaq6i4Q"
