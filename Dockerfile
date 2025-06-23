@@ -42,7 +42,8 @@ RUN chmod 644 /usr/share/fonts/truetype/custom/* && \
 
 COPY package*.json ./
 # ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-# ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_DOWNLOAD_BASE_URL=https://cdn.npmmirror.com/binaries/chrome-for-testing
+
 RUN npm config set registry http://172.22.121.51:8081/repository/npm-proxy/
 RUN npm install
 

@@ -23,7 +23,7 @@ def fetch_talents(token):
         },
         "keyword": "",
         "page": 0,
-        "size": 5,
+        "size": 500,
         "needAggregations": True
     }
     
@@ -158,7 +158,8 @@ def fetch_paper_stream_graph(teacher_id, token):
         return []
 
 def generate_resume(teacher_data, papers, collaborations=[], collaborations_chart=[], paper_stream_graph_data=[], index=None):
-    url = "http://172.22.121.63:32301/generate-pdf"
+    # url = "http://172.22.121.63:32301/generate-pdf"
+    url = "http://localhost:3000/generate-pdf"
     
     headers = {
         'Authorization': f'Bearer {token}',
