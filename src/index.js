@@ -88,7 +88,6 @@ app.post('/generate-pdf', async (req, res) => {
     try {
         const { 
             teacherData, 
-            chineseDescription,
             chartOptions = {}, 
             papers = [], 
             collaborations = [],
@@ -112,7 +111,6 @@ app.post('/generate-pdf', async (req, res) => {
         // 将论文数据和合作关系数据添加到模板数据中
         const templateData = {
             ...teacherData,
-            chineseDescription,
             papers,
             collaborations: collaborations.sort((a, b) => b.numCooperation - a.numCooperation), // 按合作次数降序排序
             domesticCollaborations: domesticCollaborations.sort((a, b) => b.numCooperation - a.numCooperation),

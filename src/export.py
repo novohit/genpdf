@@ -52,7 +52,7 @@ def fetch_talents(token):
         },
         "keyword": "",
         "page": 0,
-        "size": 200,
+        "size": 10,
         "needAggregations": False
     }
     
@@ -195,9 +195,11 @@ def fetch_teacher_papers(teacher_id, token):
         print(f"Error fetching papers for teacher {teacher_id}: {e}")
         return []
     
-def fetch_teacher_collaborations(teacher_id, token):
+def fetch_teacher_collaborations(teacher_id, token, isDomestic=False):
     url = f"{base_url}/talents/teacher/cooperation?teacherId={teacher_id}&onlyDomestic=false"
-    
+    if isDomestic:
+        url = f"{base_url}/talents/teacher/cooperation?teacherId={teacher_id}&onlyDomestic=true"
+
     headers = {
         'Authorization': f'Bearer {token}',
         'Content-Type': 'application/json'
@@ -211,7 +213,28 @@ def fetch_teacher_collaborations(teacher_id, token):
     except requests.exceptions.RequestException as e:
         print(f"Error fetching collaborations for teacher {teacher_id}: {e}")
         return []
+
+def translate_text(text, token,from_language="en", to_language="zh"):
+    url = f"{base_url}/translation/translate"
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+    payload = {
+        "texts": [text],
+        "fromLanguage": from_language,
+        "toLanguage": to_language
+    }
     
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        response_data = response.json()
+        return response_data.get('data', {}).get('translatedTexts', [text])[0]
+    except requests.exceptions.RequestException as e:
+        print(f"Error translating text: {e}")
+        return text
+
 def fetch_paper_stream_graph(teacher_id, token):
     url = f"{base_url}/talents/paper-stream-graph"
     
@@ -233,9 +256,9 @@ def fetch_paper_stream_graph(teacher_id, token):
         print(f"Error fetching paper stream graph for teacher {teacher_id}: {e}")
         return []
 
-def generate_resume(teacher_data, papers, collaborations=[], collaborations_chart=[], paper_stream_graph_data=[], index=None):
-    url = "http://172.22.121.63:32301/generate-pdf"
-    # url = "http://localhost:3000/generate-pdf"
+def generate_resume(teacher_data, papers, collaborations=[], domestic_collaborations=[], collaborations_chart=[], domestic_collaborations_chart=[], paper_stream_graph_data=[], index=None):
+    # url = "http://172.22.121.63:32301/generate-pdf"
+    url = "http://localhost:3000/generate-pdf"
     
     headers = {
         'Authorization': f'Bearer {token}',
@@ -246,7 +269,9 @@ def generate_resume(teacher_data, papers, collaborations=[], collaborations_char
         "teacherData": teacher_data,
         "papers": papers,
         "collaborations": collaborations,
+        "domesticCollaborations": domestic_collaborations,
         "relationshipGraph": collaborations_chart,
+        "domesticRelationshipGraph": domestic_collaborations_chart,
         "streamGraphData": paper_stream_graph_data,
         "config": {
             "maxPapers": 1000,
@@ -288,6 +313,7 @@ def generate_resume(teacher_data, papers, collaborations=[], collaborations_char
 def process_single_talent(talent, token, index=None):
     teacher_id = talent.get('teacherId')
     teacher_name = talent.get('derivedTeacherName')
+    teacher_omit_description = talent.get('omitDescription')
     if not teacher_id:
         return {
             "success": False,
@@ -300,9 +326,13 @@ def process_single_talent(talent, token, index=None):
     print(f"\nProcessing {teacher_name} (ID: {teacher_id})")
     papers = fetch_teacher_papers(teacher_id, token)
     collaborations = fetch_teacher_collaborations(teacher_id, token)
+    domestic_collaborations = fetch_teacher_collaborations(teacher_id, token, True)
     collaborations_chart = transform_coauthor_data(collaborations)
+    domestic_collaborations_chart = transform_coauthor_data(domestic_collaborations)
     paper_stream_graph = fetch_paper_stream_graph(teacher_id, token)
     paper_stream_graph_data = transform_to_stream_graph_data(paper_stream_graph)
+    chineseDescription = translate_text(teacher_omit_description, token)
+    talent['chineseDescription'] = chineseDescription
     
     # 创建完整的教师数据
     complete_data = {
@@ -310,12 +340,14 @@ def process_single_talent(talent, token, index=None):
         **talent,  # 包含原始教师数据
         "papers": papers,
         "collaborations": collaborations,
+        "domestic_collaborations": domestic_collaborations,
         "collaborations_chart": collaborations_chart,
+        "domestic_collaborations_chart": domestic_collaborations_chart,
         "paper_stream_graph": paper_stream_graph,
         "paper_stream_graph_data": paper_stream_graph_data
     }
     
-    result = generate_resume(talent, papers, collaborations, collaborations_chart, paper_stream_graph_data, index)
+    result = generate_resume(talent, papers, collaborations, domestic_collaborations, collaborations_chart, domestic_collaborations_chart, paper_stream_graph_data, index)
     
     if result is not None:
         complete_data["pdf_path"] = result["file_path"]
