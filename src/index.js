@@ -53,6 +53,18 @@ handlebars.registerHelper('default', function(value, defaultValue) {
     return value != null ? value : defaultValue;
 });
 
+// 字符串长度辅助函数
+handlebars.registerHelper('length', function(str) {
+    if (!str) return 0;
+    return str.length;
+});
+
+// 字符串截取辅助函数
+handlebars.registerHelper('substring', function(str, start, end) {
+    if (!str) return '';
+    return str.substring(start, end);
+});
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -76,14 +88,17 @@ app.post('/generate-pdf', async (req, res) => {
     try {
         const { 
             teacherData, 
+            chineseDescription,
             chartOptions = {}, 
             papers = [], 
             collaborations = [],
+            domesticCollaborations = [],
             relationshipGraph = [], 
+            domesticRelationshipGraph = [],
             streamGraphData = [], 
             experience = [],
             config = {
-                maxPapers: 5,
+                maxPapers: 20,
                 maxCollaborations: 5,
                 maxMajor2Domain: 10,
                 maxMajor3Domain: 10
@@ -97,8 +112,10 @@ app.post('/generate-pdf', async (req, res) => {
         // 将论文数据和合作关系数据添加到模板数据中
         const templateData = {
             ...teacherData,
+            chineseDescription,
             papers,
             collaborations: collaborations.sort((a, b) => b.numCooperation - a.numCooperation), // 按合作次数降序排序
+            domesticCollaborations: domesticCollaborations.sort((a, b) => b.numCooperation - a.numCooperation),
             experience,
             config // 传递配置到模板
         };
@@ -120,6 +137,7 @@ app.post('/generate-pdf', async (req, res) => {
         let skillsBarChart = '';
         let publicationBarChart = '';
         let relationshipGraphSvg = '';
+        let domesticRelationshipGraphSvg = '';
         let streamGraphSvg = '';
 
         // 生成教师能力评估饼图
@@ -131,6 +149,11 @@ app.post('/generate-pdf', async (req, res) => {
         // 生成合作关系图
         if (relationshipGraph.length > 0) {
             relationshipGraphSvg = await captureRelationshipGraph(page, relationshipGraph);
+        }
+
+        // 生成国内合作关系图
+        if (domesticRelationshipGraph.length > 0) {
+            domesticRelationshipGraphSvg = await captureRelationshipGraph(page, domesticRelationshipGraph, true, 'domestic-relationship-graph-container');
         }
 
         // 生成河流图
@@ -160,6 +183,17 @@ app.post('/generate-pdf', async (req, res) => {
             finalHtml = finalHtml.replace('<div id="relationship-graph-placeholder"></div>', `
                 <div style="page-break-inside: avoid; margin: 20px 0;">
                     ${relationshipGraphSvg}
+                </div>
+            `);
+        }
+
+        // 插入国内合作关系图
+
+        // 插入国内合作关系图
+        if (domesticRelationshipGraph.length > 0) {
+            finalHtml = finalHtml.replace('<div id="domestic-relationship-graph-placeholder"></div>', `
+                <div style="page-break-inside: avoid; margin: 20px 0;">
+                    ${domesticRelationshipGraphSvg}
                 </div>
             `);
         }

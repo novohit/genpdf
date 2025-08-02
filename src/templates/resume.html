@@ -264,6 +264,11 @@
             </div>
             {{/unless}}
             {{/if}}
+            {{#if (eq isChinese 1)}}
+            <div class="info-item">
+                <span class="info-label">华人</span>
+            </div>
+            {{/if}}
         </div>
     </div>
 
@@ -328,7 +333,17 @@
 
     <div class="section">
         <div class="section-title">个人简介</div>
+        {{#if omitDescription}}
         <div class="description">{{omitDescription}}</div>
+        {{/if}}
+        {{#if omitDescription}}
+        {{#if chineseDescription}}
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;">
+        {{/if}}
+        {{/if}}
+        {{#if chineseDescription}}
+        <div class="description">{{chineseDescription}}</div>
+        {{/if}}
     </div>
 
     <!-- <div class="section">
@@ -404,7 +419,7 @@
             <div class="paper-item">
                 <div class="paper-title">{{title}}</div>
                 <div class="paper-source">{{paperSource}}</div>
-                <div class="paper-authors">{{authorList}}</div>
+                <div class="paper-authors">{{#if (gt (length authorList) 500)}}{{substring authorList 0 500}}...{{else}}{{authorList}}{{/if}}</div>
                 <div class="paper-meta">
                     <div>被引用次数：{{default cited 0}}</div>
                     <div>{{publicationDate}}</div>
@@ -418,23 +433,56 @@
     {{#if collaborations}}
     <div class="section">
         <div class="section-title">学术合作</div>
-        <div id="relationship-graph-placeholder"></div>
-        <div class="collaboration-list">
-            {{#each (slice collaborations 0 config.maxCollaborations)}}
-            <div class="collaboration-item" style="padding: 6px 0; border-bottom: 1px solid #eee;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
-                    <div style="font-weight: 500;">{{partnerName}}</div>
-                    <div style="color: #666;">合作次数：{{numCooperation}}</div>
+        
+        <!-- 全部合作 -->
+        <div style="margin-bottom: 20px;">
+            <div style="font-size: 16px; font-weight: 600; color: #2f508f; margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">
+                全部合作
+            </div>
+            <div id="relationship-graph-placeholder"></div>
+            <div class="collaboration-list">
+                {{#each (slice collaborations 0 config.maxCollaborations)}}
+                <div class="collaboration-item" style="padding: 6px 0; border-bottom: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                        <div style="font-weight: 500;">{{partnerName}}</div>
+                        <div style="color: #666;">合作次数：{{numCooperation}}</div>
+                    </div>
+                    <div style="color: #666; font-size: 0.85em;">{{partnerSchool}}</div>
                 </div>
-                <div style="color: #666; font-size: 0.85em;">{{partnerSchool}}</div>
+                {{/each}}
+                {{#if (gt collaborations.length config.maxCollaborations)}}
+                <div style="text-align: right; padding: 10px 0; color: #666; font-size: 0.9em;">
+                    还有 {{subtract collaborations.length config.maxCollaborations}} 个合作者
+                </div>
+                {{/if}}
             </div>
-            {{/each}}
-            {{#if (gt collaborations.length config.maxCollaborations)}}
-            <div style="text-align: right; padding: 10px 0; color: #666; font-size: 0.9em;">
-                还有 {{subtract collaborations.length config.maxCollaborations}} 个合作者
-            </div>
-            {{/if}}
         </div>
+        
+        <!-- 国内合作 -->
+        {{#if domesticCollaborations}}
+        <div style="margin-bottom: 20px;">
+            <div style="font-size: 16px; font-weight: 600; color: #2f508f; margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">
+                国内合作
+            </div>
+            <div id="domestic-relationship-graph-placeholder"></div>
+            <div class="collaboration-list">
+                {{#each (slice domesticCollaborations 0 config.maxCollaborations)}}
+                <div class="collaboration-item" style="padding: 6px 0; border-bottom: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                        <div style="font-weight: 500;">{{partnerName}}</div>
+                        <div style="color: #666;">合作次数：{{numCooperation}}</div>
+                    </div>
+                    <div style="color: #666; font-size: 0.85em;">{{partnerSchool}}</div>
+                </div>
+                {{/each}}
+                {{#if (gt domesticCollaborations.length config.maxCollaborations)}}
+                <div style="text-align: right; padding: 10px 0; color: #666; font-size: 0.9em;">
+                    还有 {{subtract domesticCollaborations.length config.maxCollaborations}} 个国内合作者
+                </div>
+                {{/if}}
+            </div>
+        </div>
+        {{/if}}
     </div>
     {{/if}}
 

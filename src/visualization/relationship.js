@@ -1,4 +1,4 @@
-const captureRelationshipGraph = async (page, data, useFixedSize = true) => {
+const captureRelationshipGraph = async (page, data, useFixedSize = true, containerId = 'relationship-graph-container') => {
     console.log('captureRelationshipGraph', data.length);
     // 注入D3库
     await page.addScriptTag({
@@ -6,9 +6,9 @@ const captureRelationshipGraph = async (page, data, useFixedSize = true) => {
     });
 
     // 创建一个容器来放置图表
-    await page.evaluate(() => {
+    await page.evaluate((id) => {
         const div = document.createElement('div');
-        div.id = 'relationship-graph-container';
+        div.id = id;
         div.style.width = '600px';
         div.style.height = '400px';
         div.style.border = '1px solid #e5e7eb';
@@ -17,10 +17,10 @@ const captureRelationshipGraph = async (page, data, useFixedSize = true) => {
         div.style.position = 'relative';
         div.style.backgroundColor = '#fff';
         document.body.appendChild(div);
-    });
+    }, containerId);
 
     // 在页面中渲染关系图并返回SVG字符串
-    const svgString = await page.evaluate((graphData, fixedSize) => {
+    const svgString = await page.evaluate((graphData, fixedSize, containerId) => {
         console.log('BBBBB graphData', JSON.stringify(graphData));
         console.log('BBBBB graphData length', JSON.stringify(graphData.length));
         const width = 600;
@@ -28,7 +28,7 @@ const captureRelationshipGraph = async (page, data, useFixedSize = true) => {
         const FIXED_NODE_SIZE = 8;
 
         // 创建SVG容器
-        const svg = d3.select('#relationship-graph-container')
+        const svg = d3.select(`#${containerId}`)
             .append('svg')
             .attr('width', width)
             .attr('height', height)
@@ -280,9 +280,9 @@ const captureRelationshipGraph = async (page, data, useFixedSize = true) => {
         });
 
         // 获取SVG字符串
-        const container = document.getElementById('relationship-graph-container');
+        const container = document.getElementById(containerId);
         return container.innerHTML;
-    }, data, useFixedSize);
+    }, data, useFixedSize, containerId);
 
     return svgString;
 };
