@@ -303,6 +303,41 @@
     </div>
     {{/if}}
 
+    {{#if googleScholarCitations}}
+    <div class="section">
+        <div class="section-title">学术引用信息</div>
+        <div class="info-grid">
+            {{#if googleScholarCitations.totalCitations}}
+            <div class="info-item">
+                <span class="info-label">总引用次数(谷歌学术)：</span>
+                <span>{{googleScholarCitations.totalCitations}}</span>
+            </div>
+            {{/if}}
+            {{#if googleScholarCitations.hIndex}}
+            <div class="info-item">
+                <span class="info-label">h指数(谷歌学术)：</span>
+                <span>{{googleScholarCitations.hIndex}}</span>
+            </div>
+            {{/if}}
+            {{#if googleScholarCitations.i10Index}}
+            <div class="info-item">
+                <span class="info-label">i10指数(谷歌学术)：</span>
+                <span>{{googleScholarCitations.i10Index}}</span>
+            </div>
+            {{/if}}
+        </div>
+    </div>
+    {{/if}}
+
+    {{#if domesticCollaborationSchools}}
+    <div class="section">
+        <div class="section-title">国内合作学校</div>
+        <div class="description">
+            {{domesticCollaborationSchools}}
+        </div>
+    </div>
+    {{/if}}
+
     {{#if majorPaper2Domain.length}}
     <div class="section">
         <div class="section-title">学科领域</div>
