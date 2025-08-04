@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: pdf-generator
-        image: 172.22.121.50/personnel-matching/zwx/pdf-generator:$CI_PIPELINE_IID
+        image: 172.22.121.50/personnel-matching/zwx/pdf-generator-v1:$CI_PIPELINE_IID
         ports:
         - containerPort: 3000
 

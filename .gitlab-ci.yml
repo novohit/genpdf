@@ -26,7 +26,7 @@ build:
       --skip-tls-verify
       --dockerfile "Dockerfile"
       --context ./
-      --destination 172.22.121.50/personnel-matching/zwx/pdf-generator:$CI_PIPELINE_IID
+      --destination 172.22.121.50/personnel-matching/zwx/pdf-generator-v1:$CI_PIPELINE_IID
 
 deploy:
   image: 172.22.121.50/dockerio/bitnami/kubectl:1.23
