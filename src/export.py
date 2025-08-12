@@ -4,20 +4,34 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 from tqdm import tqdm
 from datetime import datetime
-
+import pandas as pd
 #base_url = "http://172.22.121.63:32738/api"
 base_url = "http://172.22.121.63:30900/api"
 pdf_save_path = "../output/resumes_v1"
 
 def load_talents(token):
     teacher_id_list = []
-    with open('talents.json', 'r', encoding='utf-8') as f:
-        talents = json.load(f)
-        for talent in talents:
+    
+    # 从Excel文件读取teacherId
+    try:
+        # 读取Excel文件
+        df = pd.read_excel('../人工智能PDF_teacher_id.xlsx')
+        
+        # 获取第一列数据（包含teacherId）
+        teacher_ids = df.iloc[:, 0].dropna()  # 删除空值
+        
+        # 构建teacher_id_list，index为顺序号
+        for idx, teacher_id in enumerate(teacher_ids, 1):
             teacher_id_list.append({
-                'teacherId': talent.get('teacherId'),
-                'index': talent.get('index')
+                'teacherId': str(teacher_id),  # 确保teacherId是字符串
+                'index': idx  # 使用顺序号作为index
             })
+        
+        print(f"📋 从Excel文件读取到 {len(teacher_id_list)} 个teacherId")
+        
+    except Exception as e:
+        print(f"❌ 读取Excel文件时出错: {e}")
+        return None
 
     url = f"{base_url}/talents/teacher/list"
     
@@ -48,7 +62,8 @@ def fetch_talents(token):
     
     payload = {
         "filters": {
-            "major2Domain": ["集成电路设计与集成系统"]
+            "major2Domain": ["集成电路设计与集成系统"],
+            "isChinese": [1]
         },
         "keyword": "",
         "page": 0,
@@ -215,6 +230,10 @@ def fetch_teacher_collaborations(teacher_id, token, isDomestic=False):
         return []
 
 def translate_text(text, token,from_language="en", to_language="zh"):
+    # 如果text为空或None，直接返回原文本
+    if not text:
+        return text
+    
     url = f"{base_url}/translation/translate"
     headers = {
         'Authorization': f'Bearer {token}',
@@ -230,9 +249,17 @@ def translate_text(text, token,from_language="en", to_language="zh"):
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
         response_data = response.json()
-        return response_data.get('data', {}).get('translatedTexts', [text])[0]
+        # 安全地获取翻译结果
+        translated_texts = response_data.get('data', {}).get('translatedTexts', [])
+        if translated_texts and len(translated_texts) > 0:
+            return translated_texts[0]
+        else:
+            return text
     except requests.exceptions.RequestException as e:
         print(f"Error translating text: {e}")
+        return text
+    except (KeyError, TypeError, IndexError) as e:
+        print(f"Error parsing translation response: {e}")
         return text
 
 def fetch_paper_stream_graph(teacher_id, token):
@@ -367,30 +394,181 @@ def process_single_talent(talent, token, index=None):
             "complete_data": None
         }
 
-def save_teachers_data_to_json(teachers_data):
+def normalize_ranking(ranking):
     """
-    Save all teachers' data to a JSON file.
+    将ranking值标准化为可比较的数值
+    
+    Args:
+        ranking: 可能是数字、字符串（如'151-200'）或None
+    
+    Returns:
+        float: 标准化后的数值，用于排序
+    """
+    if ranking is None:
+        return float('inf')
+    
+    if isinstance(ranking, (int, float)):
+        return float(ranking)
+    
+    # 处理范围形式的排名（如'151-200'）
+    if isinstance(ranking, str):
+        try:
+            if '-' in ranking:
+                # 使用范围的第一个数字
+                return float(ranking.split('-')[0])
+            else:
+                return float(ranking)
+        except (ValueError, IndexError):
+            return float('inf')
+    
+    return float('inf')
+
+def format_education(educations):
+    """格式化教育经历"""
+    if not educations:
+        return ""
+    edu_list = []
+    for edu in educations:
+        if not edu:
+            continue
+        parts = []
+        if edu.get('endDate'):
+            parts.append(f"毕业时间：{edu.get('endDate')}")
+        if edu.get('organization'):
+            parts.append(f"院校：{edu.get('organization')}")
+        if edu.get('department'):
+            parts.append(f"院系：{edu.get('department')}")
+        if edu.get('degree'):
+            parts.append(f"学位：{edu.get('degree')}")
+        if parts:
+            edu_list.append('，'.join(parts))
+    return '\n'.join(edu_list)
+
+def format_employment(employments):
+    """格式化工作经历"""
+    if not employments:
+        return ""
+    emp_list = []
+    for emp in employments:
+        if not emp:
+            continue
+        parts = []
+        if emp.get('startDate'):
+            parts.append(f"起始：{emp.get('startDate')}")
+        if emp.get('endDate'):
+            parts.append(f"结束：{emp.get('endDate')}")
+        if emp.get('organization'):
+            parts.append(f"单位：{emp.get('organization')}")
+        if emp.get('roleTitle'):
+            parts.append(f"职位：{emp.get('roleTitle')}")
+        if parts:
+            emp_list.append('，'.join(parts))
+    return '\n'.join(emp_list)
+
+def format_domains(domains):
+    """格式化学科领域"""
+    if not domains:
+        return ""
+    return '，'.join(domains)
+
+def save_teachers_data(teachers_data):
+    """
+    Save all teachers' data to both JSON and Excel files.
     
     Args:
         teachers_data (list): List of dictionaries containing teacher data
     """
-    json_save_path = os.path.join(os.path.dirname(pdf_save_path), "teachers_data.json")
+    if not teachers_data:
+        print("\n❌ No teacher data to save")
+        return
+        
+    # 确保输出目录存在
+    output_dir = os.path.dirname(pdf_save_path)
     
-    # Sort teachers by ranking
-    sorted_teachers = sorted(teachers_data, key=lambda x: x.get('ranking', float('inf')))
+    # 保存JSON文件
+    json_save_path = os.path.join(output_dir, "teachers_data.json")
+    excel_save_path = os.path.join(output_dir, "teachers_data.xlsx")
+    
+    # 按ranking排序教师数据，使用标准化的ranking值
+    sorted_teachers = sorted(teachers_data, key=lambda x: normalize_ranking(x.get('ranking')))
     
     try:
+        # 保存JSON文件
         with open(json_save_path, 'w', encoding='utf-8') as f:
             json.dump(sorted_teachers, f, ensure_ascii=False, indent=2)
         print(f"\n💾 Teachers data saved to: {json_save_path}")
+        
+        # 准备Excel数据
+        teacher_info = []
+        
+        for teacher in sorted_teachers:
+            if not teacher:
+                continue
+                
+            teacher_name = teacher.get('derivedTeacherName', '')
+            
+            # 整合所有信息
+            teacher_info.append({
+                '序号': teacher.get('index'),
+                '姓名': teacher_name,
+                '排名': teacher.get('ranking'),
+                '论文数量': len(teacher.get('papers', []) or []),
+                '职称': teacher.get('normalizedTitle'),
+                '职称等级': teacher.get('jobTitleLevel'),
+                '头衔': teacher.get('famousTitles'),
+                '头衔等级': teacher.get('famousTitlesLevel'),
+                '所属机构': teacher.get('schoolName'),
+                '所属机构(英文)': teacher.get('schoolNameEn'),
+                '学院': teacher.get('collegeName'),
+                '地区': teacher.get('region'),
+                '邮箱': teacher.get('email'),
+                '年龄范围': teacher.get('ageRange'),
+                '企业经验': teacher.get('corporateExperience'),
+                '海外经验': teacher.get('overseasExperience'),
+                '是否博士': '是' if teacher.get('isPhd') == 1 else '否',
+                '是否中国籍': '是' if teacher.get('isChinese') == 1 else '否',
+                '教育经历': format_education(teacher.get('educations')),
+                '工作经历': format_employment(teacher.get('employments')),
+                '一级学科(主要)': format_domains(teacher.get('majorPaper1Domain')),
+                '一级学科(次要)': format_domains(teacher.get('minorPaper1Domain')),
+                '二级学科(主要)': format_domains(teacher.get('majorPaper2Domain')),
+                '二级学科(次要)': format_domains(teacher.get('minorPaper2Domain')),
+                '三级学科(主要)': format_domains(teacher.get('majorPaper3Domain')),
+                '三级学科(次要)': format_domains(teacher.get('minorPaper3Domain')),
+                '研究方向': format_domains(teacher.get('researchArea')),
+                '中文简介': teacher.get('chineseDescription'),
+                '英文简介': teacher.get('omitDescription'),
+                'PDF文件': os.path.basename(teacher.get('pdf_path', ''))
+            })
+        
+        # 创建Excel writer对象
+        with pd.ExcelWriter(excel_save_path, engine='openpyxl') as writer:
+            # 保存表格
+            df = pd.DataFrame(teacher_info)
+            # 设置一些列的宽度
+            df.to_excel(writer, sheet_name='教师信息', index=False)
+            worksheet = writer.sheets['教师信息']
+            
+            # 设置列宽
+            for idx, col in enumerate(df.columns):
+                max_length = max(
+                    df[col].astype(str).apply(len).max(),  # 最长的内容
+                    len(str(col))  # 列名的长度
+                )
+                # 设置最小宽度为10，最大宽度为50
+                adjusted_width = min(max(10, max_length + 2), 50)
+                worksheet.column_dimensions[chr(65 + idx)].width = adjusted_width
+        
+        print(f"📊 Excel data saved to: {excel_save_path}")
+        
     except Exception as e:
-        print(f"\n❌ Error saving teachers data to JSON: {e}")
+        print(f"\n❌ Error saving data: {e}")
 
 if __name__ == "__main__":
     os.makedirs(pdf_save_path, exist_ok=True)
     
     start_time = datetime.now()
-    token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOjExLCJkZXZpY2UiOiJkZWZhdWx0LWRldmljZSIsImVmZiI6MTc1NDgwOTY5OTA5Miwicm5TdHIiOiJ2aDJzcXFxUWt0bTlGeHlRcWlsQkVkMlZzTm5oVzJxWiJ9.Xsuof96YutUG9bpmhWcPM4zmu10SAf5izZwvHWNcSBY"
+    token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOjExLCJkZXZpY2UiOiJkZWZhdWx0LWRldmljZSIsImVmZiI6MTc1NzU3MzQyNzQwOSwicm5TdHIiOiI5cVI2OG5VZ3d0MVhtb2ZnN2dybWtxcU1kWVlhaG1TaiJ9.NHD64NSk8yASWusq1MCPNrK1Jwwxiu5j2vR6TS7o664"
     
     print("🔍 Fetching talents list...")
     # talents = load_talents(token)
@@ -406,7 +584,7 @@ if __name__ == "__main__":
         all_teachers_data = []
         
         # 使用线程池处理简历生成
-        max_workers = min(10, total_talents)
+        max_workers = min(10, 10)
         print(f"⚙️ Using {max_workers} threads for processing")
         
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -436,8 +614,8 @@ if __name__ == "__main__":
                     # 显示当前处理的简历状态（包含序号）
                     pbar.set_postfix_str(f"{status} [{result['index']:03d}] {result['teacher_name']}")
         
-        # 保存所有教师数据到JSON文件
-        save_teachers_data_to_json(all_teachers_data)
+        # 保存所有教师数据到JSON和Excel文件
+        save_teachers_data(all_teachers_data)
         
         # 显示最终统计信息
         end_time = datetime.now()
