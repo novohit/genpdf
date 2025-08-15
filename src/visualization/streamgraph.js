@@ -87,7 +87,30 @@ const captureStreamGraph = async (page, data, options = {}) => {
         });
 
         // 绘制网格线和年份标签
-        const uniqueXValues = [...new Set(data.map(d => d.x))];
+        const uniqueXValues = [...new Set(data.map(d => d.x))].sort((a, b) => a - b);
+        
+        // Calculate optimal number of labels to show based on available width
+        const MIN_LABEL_SPACING = 40; // Minimum pixels between labels
+        const calculateOptimalLabels = (allValues, width) => {
+            // Calculate how many labels we can fit based on minimum spacing
+            const maxLabels = Math.floor(width / MIN_LABEL_SPACING);
+            
+            // If we can show all labels, return them all
+            if (allValues.length <= maxLabels) {
+                return allValues;
+            }
+            
+            // Calculate step size to show evenly distributed labels
+            const step = Math.ceil(allValues.length / maxLabels);
+            
+            // Return filtered array with evenly spaced values
+            return allValues.filter((_, index) => index % step === 0);
+        };
+
+        // Get optimal labels to display
+        const displayValues = calculateOptimalLabels(uniqueXValues, boundsWidth);
+
+        // Draw grid lines and labels
         uniqueXValues.forEach(value => {
             // 垂直网格线
             g.append('line')
@@ -98,15 +121,17 @@ const captureStreamGraph = async (page, data, options = {}) => {
                 .attr('stroke', '#808080')
                 .attr('opacity', 0.2);
 
-            // 年份标签
-            g.append('text')
-                .attr('x', xScale(value))
-                .attr('y', boundsHeight + 10)
-                .attr('text-anchor', 'middle')
-                .attr('alignment-baseline', 'central')
-                .attr('font-size', 12)
-                .attr('fill', textColor)
-                .text(value);
+            // 年份标签 (only show selected labels)
+            if (displayValues.includes(value)) {
+                g.append('text')
+                    .attr('x', xScale(value))
+                    .attr('y', boundsHeight + 10)
+                    .attr('text-anchor', 'middle')
+                    .attr('alignment-baseline', 'central')
+                    .attr('font-size', 12)
+                    .attr('fill', textColor)
+                    .text(value);
+            }
         });
 
         // 添加 TimeAxis

@@ -62,12 +62,12 @@ def fetch_talents(token):
     
     payload = {
         "filters": {
-            "major2Domain": ["集成电路设计与集成系统"],
-            "isChinese": [1]
+            "major2Domain": ["量子信息科学"],
+            "normalizedTitle": ["professor", "research scientist", "research fellow", "fellow", "researcher", "其他", ""]
         },
         "keyword": "",
         "page": 0,
-        "size": 10,
+        "size": 5,
         "needAggregations": False
     }
     
@@ -89,7 +89,7 @@ def fetch_match_talents(token):
         'Content-Type': 'application/json'
     }
 
-    keyword = "人工智能"
+    keyword = "机器人"
 
     payload = {
         "task": {
@@ -102,15 +102,9 @@ def fetch_match_talents(token):
             ]
         },
         "filters": [
-            {
-                "key": "coauthor_is_chinese",
-                "values": [
-                    "1"
-                ]
-            }
         ],
         "limitParams": {
-            "limit": 15
+            "limit": 1000
         }
     }
 
@@ -234,7 +228,7 @@ def translate_text(text, token,from_language="en", to_language="zh"):
     if not text:
         return text
     
-    url = f"{base_url}/translation/translate"
+    url = f"{base_url}/translation/translate/llm"
     headers = {
         'Authorization': f'Bearer {token}',
         'Content-Type': 'application/json'
@@ -242,7 +236,8 @@ def translate_text(text, token,from_language="en", to_language="zh"):
     payload = {
         "texts": [text],
         "fromLanguage": from_language,
-        "toLanguage": to_language
+        "toLanguage": to_language,
+        "type": "EXPERT_PROFILE"
     }
     
     try:
@@ -505,60 +500,59 @@ def save_teachers_data(teachers_data):
             if not teacher:
                 continue
                 
-            teacher_name = teacher.get('derivedTeacherName', '')
+            # 处理数值类型
+            try:
+                index = int(teacher.get('index')) if teacher.get('index') is not None else None
+                paper_num = int(len(teacher.get('papers', []) or []))
+            except (ValueError, TypeError):
+                index = None
+                paper_num = 0
             
             # 整合所有信息
             teacher_info.append({
-                '序号': teacher.get('index'),
-                '姓名': teacher_name,
-                '排名': teacher.get('ranking'),
-                '论文数量': len(teacher.get('papers', []) or []),
-                '职称': teacher.get('normalizedTitle'),
-                '职称等级': teacher.get('jobTitleLevel'),
-                '头衔': teacher.get('famousTitles'),
-                '头衔等级': teacher.get('famousTitlesLevel'),
-                '所属机构': teacher.get('schoolName'),
-                '所属机构(英文)': teacher.get('schoolNameEn'),
-                '学院': teacher.get('collegeName'),
-                '地区': teacher.get('region'),
-                '邮箱': teacher.get('email'),
-                '年龄范围': teacher.get('ageRange'),
-                '企业经验': teacher.get('corporateExperience'),
-                '海外经验': teacher.get('overseasExperience'),
-                '是否博士': '是' if teacher.get('isPhd') == 1 else '否',
-                '是否中国籍': '是' if teacher.get('isChinese') == 1 else '否',
-                '教育经历': format_education(teacher.get('educations')),
-                '工作经历': format_employment(teacher.get('employments')),
-                '一级学科(主要)': format_domains(teacher.get('majorPaper1Domain')),
-                '一级学科(次要)': format_domains(teacher.get('minorPaper1Domain')),
-                '二级学科(主要)': format_domains(teacher.get('majorPaper2Domain')),
-                '二级学科(次要)': format_domains(teacher.get('minorPaper2Domain')),
-                '三级学科(主要)': format_domains(teacher.get('majorPaper3Domain')),
-                '三级学科(次要)': format_domains(teacher.get('minorPaper3Domain')),
-                '研究方向': format_domains(teacher.get('researchArea')),
-                '中文简介': teacher.get('chineseDescription'),
-                '英文简介': teacher.get('omitDescription'),
-                'PDF文件': os.path.basename(teacher.get('pdf_path', ''))
+                'index': index,
+                'teacher_id': teacher.get('teacherId'),
+                'teacher_name': teacher.get('derivedTeacherName'),
+                'ranking': teacher.get('ranking'),
+                'paper_num': paper_num,
+                'normalized_title': teacher.get('normalizedTitle'),
+                'job_title_level': teacher.get('jobTitleLevel'),
+                'famous_titles': teacher.get('famousTitles'),
+                'famous_titles_level': teacher.get('famousTitlesLevel'),
+                'school_name': teacher.get('schoolName'),
+                'school_name_en': teacher.get('schoolNameEn'),
+                'college_name': teacher.get('collegeName'),
+                'region': teacher.get('region'),
+                'email': teacher.get('email'),
+                'age_range': teacher.get('ageRange'),
+                'corporate_experience': teacher.get('corporateExperience'),
+                'overseas_experience': teacher.get('overseasExperience'),
+                'is_phd': teacher.get('isPhd'),
+                'is_chinese': teacher.get('isChinese'),
+                'educations': format_education(teacher.get('educations')),
+                'employments': format_employment(teacher.get('employments')),
+                'major_paper1_domain': format_domains(teacher.get('majorPaper1Domain')),
+                'minor_paper1_domain': format_domains(teacher.get('minorPaper1Domain')),
+                'major_paper2_domain': format_domains(teacher.get('majorPaper2Domain')),
+                'minor_paper2_domain': format_domains(teacher.get('minorPaper2Domain')),
+                'major_paper3_domain': format_domains(teacher.get('majorPaper3Domain')),
+                'minor_paper3_domain': format_domains(teacher.get('minorPaper3Domain')),
+                'research_area': format_domains(teacher.get('researchArea')),
+                'chinese_description': teacher.get('chineseDescription'),
+                'omit_description': teacher.get('omitDescription'),
+                'pdf_path': os.path.basename(teacher.get('pdf_path', ''))
             })
         
-        # 创建Excel writer对象
-        with pd.ExcelWriter(excel_save_path, engine='openpyxl') as writer:
-            # 保存表格
-            df = pd.DataFrame(teacher_info)
-            # 设置一些列的宽度
-            df.to_excel(writer, sheet_name='教师信息', index=False)
-            worksheet = writer.sheets['教师信息']
-            
-            # 设置列宽
-            for idx, col in enumerate(df.columns):
-                max_length = max(
-                    df[col].astype(str).apply(len).max(),  # 最长的内容
-                    len(str(col))  # 列名的长度
-                )
-                # 设置最小宽度为10，最大宽度为50
-                adjusted_width = min(max(10, max_length + 2), 50)
-                worksheet.column_dimensions[chr(65 + idx)].width = adjusted_width
+        # 直接保存为Excel
+        df = pd.DataFrame(teacher_info)
         
+        # 确保数值类型的列保持为数值
+        numeric_columns = ['index', 'paper_num', 'is_phd', 'is_chinese']
+        for col in numeric_columns:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+        
+        df.to_excel(excel_save_path, sheet_name='teachers', index=False)
         print(f"📊 Excel data saved to: {excel_save_path}")
         
     except Exception as e:
